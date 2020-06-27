@@ -2,8 +2,8 @@
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title>Netflix Matrimony</title>
-    <link rel="shortcut icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    <title>Phynder</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/black_tinder.ico') }}">
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
 
@@ -21,17 +21,17 @@
         </a>
       </div>
 
-      <div class="movie-card">
-        <img src={{movie.image}} alt="movie">
+      <div class="person-card">
+        <img src={{person.image}} alt="person">
         <div class="text">
-          <h4><b>{{movie.title}}</b></h4>
-          <p class="marker"> <i class="fa fa-imdb" aria-hidden="true"></i> {{movie.imdb}}/10</p>
-            <p class="marker"><i class="fa fa-calendar" aria-hidden="true"></i> {{movie.release_year}}</p>
-          <p class="marker"> <i class="fa fa-film" aria-hidden="true"></i> {{movie.genre}}</p>
-          <p class="marker"> <i class="fa fa-clock-o" aria-hidden="true"></i> {{movie.duration}} </p>
-            <p class="marker"> <i class="fa fa-globe" aria-hidden="true"></i> {{movie.country}}</p>
+          <h4><b>{{person.name}}</b></h4>
+          <p class="marker"> <i class="fa fa-imdb" aria-hidden="true"></i> {{person.imdb}}/10</p>
+            <p class="marker"><i class="fa fa-calendar" aria-hidden="true"></i> {{person.release_year}}</p>
+          <p class="marker"> <i class="fa fa-film" aria-hidden="true"></i> {{person.genre}}</p>
+          <p class="marker"> <i class="fa fa-clock-o" aria-hidden="true"></i> {{person.duration}} </p>
+            <p class="marker"> <i class="fa fa-globe" aria-hidden="true"></i> {{person.country}}</p>
           <hr>
-          <p>{{movie.description}}</p>
+          <p>{{person.description}}</p>
         </div>
       </div>
 
@@ -46,8 +46,8 @@
 
     <div class="container">
       <div>
-        <button class="button watch" onclick="window.open('https://www.netflix.com/watch/{{movie.id}}', '_blank')"target='0'>
-          Watch Now!
+        <button class="button watch" onclick="window.open('https://vk.com/id{{person.id}}', '_blank')"target='0'>
+          Open the page in VK!
           <i class="fa fa-star"></i>
         </button>
       </div>
