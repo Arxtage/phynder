@@ -1,4 +1,4 @@
 # phynder
 Interactive Tinder
 
-(c) jester.ai
+(c) jesture.ai
