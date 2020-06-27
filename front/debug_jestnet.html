@@ -1,0 +1,108 @@
+<!doctype html>
+<html>
+    <head></head>
+    <style>
+    body {
+        font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+        margin-top: 50px;
+        margin-left: 50px;
+    }
+    </style>
+        <body>
+            <h1>TensorFlow.js: gesture recognition</h1>
+            <div class="webcam-box-outer">
+                <div class="webcam-box-inner">
+                    <video autoplay playsinline muted id="webcam" width="224" height="224"></video>
+                </div>
+            </div>
+        </body>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0"> </script>
+<!--   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-data@2.0.0/dist/tf.min.js"></script> -->
+<!--   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@2.0.0/dist/tf.min.js"></script> -->
+    <script>
+        async function loadJestNet() {
+//             const MODEL_URL = '../convert/models/jestnet_simple/model.json';
+            const MODEL_URL = '../convert/models/mv2_simple/model.json';
+            const model = await tf.loadGraphModel(MODEL_URL);
+            console.log('JestNet loaded');
+            console.log(model);
+            return model;
+        }
+        
+        /**
+         * Captures a frame from the webcam and normalizes it between -1 and 1.
+         * Returns a batched image (1-element batch) of shape [1, w, h, c].
+         */
+        async function getProcessedFrame() {
+            const img = await webcam.capture();  // (224, 224, 3) 0 ~ 255
+            const processedImg =
+              tf.tidy(() => img.transpose([2, 0, 1]).expandDims(0).toFloat().div(255));  // (1, 3, 224, 224) 0 ~ 1.0
+            img.dispose();
+            return processedImg;
+        }
+        
+        const isPredicting = true;
+        
+        async function predict() {
+            // init webcam
+            try {
+                webcam = await tf.data.webcam(document.getElementById('webcam'));
+            } catch (e) {
+                console.log(e);
+                document.getElementById('no-webcam').style.display = 'block';
+            }
+            tf.ENV.set('WEBGL_PACK', false);  // !!!
+            // load the gesture recognition model
+            jestNet = await loadJestNet();
+            mv2_official_model = await mobilenet.load();
+            console.log(mv2_official_model);
+            // set the initial buffer
+            buffer = [
+                tf.zeros([1, 3, 56, 56]),
+                tf.zeros([1, 4, 28, 28]),
+                tf.zeros([1, 4, 28, 28]),
+                tf.zeros([1, 8, 14, 14]),
+                tf.zeros([1, 8, 14, 14]),
+                tf.zeros([1, 8, 14, 14]),
+                tf.zeros([1, 12, 14, 14]),
+                tf.zeros([1, 12, 14, 14]),
+                tf.zeros([1, 20, 7, 7]),
+                tf.zeros([1, 20, 7, 7])
+            ]
+            // runtime loop
+            while (isPredicting) {
+                // Capture the frame from the webcam.
+                const img = await getProcessedFrame();
+                input_tensors = {
+                    'i0': img,
+//                     'i1': buffer[0],
+//                     'i2': buffer[1],
+//                     'i3': buffer[2],
+//                     'i4': buffer[3],
+//                     'i5': buffer[4],
+//                     'i6': buffer[5],
+//                     'i7': buffer[6],
+//                     'i8': buffer[7],
+//                     'i9': buffer[8],
+//                     'i10': buffer[9]
+                }
+                console.time('jestNet.predict()');
+//                 outputs = jestNet.predict(input_tensors);
+                preds = mv2_official_model.classify(img);
+                console.timeEnd('jestNet.predict()');
+                // Returns the index with the maximum probability. This number corresponds
+                // to the class the model thinks is the most probable given the input.
+//                 const predictedClass = predictions.as1D().argMax();
+//                 const classId = (await predictedClass.data())[0];
+                img.dispose();
+                await tf.nextFrame();
+            }
+        }
+        // http://127.0.0.1:8080/debug_jestnet.html
+        // Initialize the application.
+        predict();
+    
+    </script>
+</html>
