@@ -16,12 +16,37 @@
                 </div>
             </div>
         </body>
-
+    <img id="img" src="https://icatcare.org/app/uploads/2018/06/Layer-1704-1920x840.jpg"></img>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0"> </script>
+    <script src="https://cdn.jsdelivr.net/npm/onnxjs/dist/onnx.min.js"></script>
 <!--   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-data@2.0.0/dist/tf.min.js"></script> -->
 <!--   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@2.0.0/dist/tf.min.js"></script> -->
     <script>
+        async function runONNX() {
+//             try {
+//                 webcam = await tf.data.webcam(document.getElementById('webcam'));
+//             } catch (e) {
+//                 console.log(e);
+//                 document.getElementById('no-webcam').style.display = 'block';
+//             }
+            const session = new onnx.InferenceSession();
+            // load the ONNX model file
+            const MODEL_ONNX = '../convert/models/mv2_simple.onnx';
+//             const img = await getProcessedFrame();
+            const tensorX = new onnx.Tensor(new Float32Array(1 * 3 * 224 * 224), 'float32', [1, 3, 224, 224])
+            await session.loadModel(MODEL_ONNX);
+            for (var i = 0; i < 100; ++i) {
+                console.time('myOnnxSession');
+                const outputMap = await session.run([tensorX]);
+                console.timeEnd('myOnnxSession');
+                console.log(outputMap.get("o0"));
+            }
+//             console.log(`model output tensor: ${outputMap.get("o0").data.value}.`);
+        }
+        
+//         runONNX();
+        
         async function loadJestNet() {
 //             const MODEL_URL = '../convert/models/jestnet_simple/model.json';
             const MODEL_URL = '../convert/models/mv2_simple/model.json';
@@ -53,7 +78,7 @@
                 console.log(e);
                 document.getElementById('no-webcam').style.display = 'block';
             }
-            tf.ENV.set('WEBGL_PACK', false);  // !!!
+//             tf.ENV.set('WEBGL_PACK', false);  // !!!
             // load the gesture recognition model
             jestNet = await loadJestNet();
             mv2_official_model = await mobilenet.load();
@@ -72,7 +97,7 @@
                 tf.zeros([1, 20, 7, 7])
             ]
             // runtime loop
-            while (isPredicting) {
+            for (var i = 0; i < 20; ++i) {
                 // Capture the frame from the webcam.
                 const img = await getProcessedFrame();
                 input_tensors = {
@@ -88,9 +113,15 @@
 //                     'i9': buffer[8],
 //                     'i10': buffer[9]
                 }
+//                 const cat_img = document.getElementById('img');
+                const cat_img = new Image();
+                cat_img.crossOrigin = "anonymous";
+                cat_img.src = "./cat_img.jpg";  // "https://icatcare.org/app/uploads/2018/06/Layer-1704-1920x840.jpg";
+                cat_img.width = 224;
+                cat_img.height = 224;
                 console.time('jestNet.predict()');
 //                 outputs = jestNet.predict(input_tensors);
-                preds = mv2_official_model.classify(img);
+                preds = mv2_official_model.classify(cat_img);
                 console.timeEnd('jestNet.predict()');
                 // Returns the index with the maximum probability. This number corresponds
                 // to the class the model thinks is the most probable given the input.
