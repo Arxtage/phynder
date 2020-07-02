@@ -42,7 +42,6 @@
                 console.timeEnd('myOnnxSession');
                 console.log(outputMap.get("o0"));
             }
-//             console.log(`model output tensor: ${outputMap.get("o0").data.value}.`);
         }
         
 //         runONNX();
@@ -80,9 +79,10 @@
             }
 //             tf.ENV.set('WEBGL_PACK', false);  // !!!
             // load the gesture recognition model
-            jestNet = await loadJestNet();
-            mv2_official_model = await mobilenet.load();
-            console.log(mv2_official_model);
+            const jestNet = await loadJestNet();
+            const mv2_official_model = await mobilenet.load();
+            const keras_mv2_model = await tf.loadLayersModel('../convert/models/keras_mobilenetv2/model.json');
+            console.log(keras_mv2_model);
             // set the initial buffer
             buffer = [
                 tf.zeros([1, 3, 56, 56]),
@@ -119,10 +119,12 @@
                 cat_img.src = "./cat_img.jpg";  // "https://icatcare.org/app/uploads/2018/06/Layer-1704-1920x840.jpg";
                 cat_img.width = 224;
                 cat_img.height = 224;
-                console.time('jestNet.predict()');
-//                 outputs = jestNet.predict(input_tensors);
-                preds = mv2_official_model.classify(cat_img);
-                console.timeEnd('jestNet.predict()');
+                console.time('keras_mv2_model.predict()');
+//                 outputs = jestNet.predict(input_tensors); 
+//                 preds = mv2_official_model.classify(cat_img);
+                preds = keras_mv2_model.predict(img);
+                console.log(preds);
+                console.timeEnd('keras_mv2_model.predict()');
                 // Returns the index with the maximum probability. This number corresponds
                 // to the class the model thinks is the most probable given the input.
 //                 const predictedClass = predictions.as1D().argMax();
