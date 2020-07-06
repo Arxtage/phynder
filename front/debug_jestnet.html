@@ -59,17 +59,25 @@
          * Captures a frame from the webcam and normalizes it between -1 and 1.
          * Returns a batched image (1-element batch) of shape [1, w, h, c].
          */
-        async function getProcessedFrame() {
+        async function getProcessedFrame(channels_format) {
             const img = await webcam.capture();  // (224, 224, 3) 0 ~ 255
-            const processedImg =
-              tf.tidy(() => img.transpose([2, 0, 1]).expandDims(0).toFloat().div(255));  // (1, 3, 224, 224) 0 ~ 1.0
-            img.dispose();
-            return processedImg;
+            if (channels_format == 'channels_first') {
+                const processedImg =
+                  tf.tidy(() => img.transpose([2, 0, 1]).expandDims(0).toFloat().div(255));  // (1, 3, 224, 224) 0 ~ 1.0
+                img.dispose();
+                return processedImg;
+            } else {
+                const processedImg =
+                  tf.tidy(() => img.expandDims(0).toFloat().div(255));  // (1, 224, 224, 3) 0 ~ 1.0
+                img.dispose();
+                return processedImg;
+            }
         }
         
         const isPredicting = true;
         
         async function predict() {
+//             tf.ENV.set('WEBGL_PACK', false);  // !!!
             // init webcam
             try {
                 webcam = await tf.data.webcam(document.getElementById('webcam'));
@@ -77,14 +85,23 @@
                 console.log(e);
                 document.getElementById('no-webcam').style.display = 'block';
             }
-//             tf.ENV.set('WEBGL_PACK', false);  // !!!
-            // load the gesture recognition model
-            const jestNet = await loadJestNet();
-            const mv2_official_model = await mobilenet.load();
+            // Load the gesture recognition model
+//             const jestNet = await loadJestNet();
+//             console.log(jestNet);
+//             const mv2_official_model = await mobilenet.load();
+//             console.log(mv2_official_model);
             const keras_mv2_model = await tf.loadLayersModel('../convert/models/keras_mobilenetv2/model.json');
             console.log(keras_mv2_model);
-            // set the initial buffer
-            buffer = [
+//             const add_layers_model = await tf.loadLayersModel('../convert/models/add_model/model.json');
+//             console.log(add_layers_model);
+            const add_graph_model = await tf.loadGraphModel('../convert/models/add_graph_model/model.json');
+            console.log(add_graph_model);
+//             const keras_tsm = await tf.loadLayersModel('../convert/models/keras_tsm/model.json');  // no TensorFlowOpLayer
+//             console.log(keras_tsm);
+            const keras_tsm_graph = await tf.loadGraphModel('../convert/models/keras_tsm_graph/model.json');
+            console.log(keras_tsm_graph);
+            // Set the initial buffer
+            const buffer = [
                 tf.zeros([1, 3, 56, 56]),
                 tf.zeros([1, 4, 28, 28]),
                 tf.zeros([1, 4, 28, 28]),
@@ -96,44 +113,83 @@
                 tf.zeros([1, 20, 7, 7]),
                 tf.zeros([1, 20, 7, 7])
             ]
-            // runtime loop
+            // Runtime loop
             for (var i = 0; i < 20; ++i) {
-                // Capture the frame from the webcam.
-                const img = await getProcessedFrame();
-                input_tensors = {
-                    'i0': img,
-//                     'i1': buffer[0],
-//                     'i2': buffer[1],
-//                     'i3': buffer[2],
-//                     'i4': buffer[3],
-//                     'i5': buffer[4],
-//                     'i6': buffer[5],
-//                     'i7': buffer[6],
-//                     'i8': buffer[7],
-//                     'i9': buffer[8],
-//                     'i10': buffer[9]
-                }
 //                 const cat_img = document.getElementById('img');
-                const cat_img = new Image();
-                cat_img.crossOrigin = "anonymous";
-                cat_img.src = "./cat_img.jpg";  // "https://icatcare.org/app/uploads/2018/06/Layer-1704-1920x840.jpg";
-                cat_img.width = 224;
-                cat_img.height = 224;
-                console.time('keras_mv2_model.predict()');
+//                 const cat_img = new Image();
+//                 cat_img.crossOrigin = "anonymous";
+//                 cat_img.src = "./cat_img.jpg";  // "https://icatcare.org/app/uploads/2018/06/Layer-1704-1920x840.jpg";
+//                 cat_img.width = 224;
+//                 cat_img.height = 224;
+
+//                 console.time('jestNet.predict()');                
 //                 outputs = jestNet.predict(input_tensors); 
+//                 console.timeEnd('jestNet.predict()');
+//                 console.log(outputs);
+                
+//                 console.time('mv2_official_model.predict()');                
 //                 preds = mv2_official_model.classify(cat_img);
-                preds = keras_mv2_model.predict(img);
-                console.log(preds);
+//                 console.timeEnd('mv2_official_model.predict()');
+//                 console.log(preds);
+                
+                console.time('keras_mv2_model.predict()');
+                const img1 = await getProcessedFrame(channels_format='channels_last');
+                preds = keras_mv2_model.predict(img1);
                 console.timeEnd('keras_mv2_model.predict()');
-                // Returns the index with the maximum probability. This number corresponds
-                // to the class the model thinks is the most probable given the input.
-//                 const predictedClass = predictions.as1D().argMax();
-//                 const classId = (await predictedClass.data())[0];
-                img.dispose();
+                console.log(preds);
+                
+//                 console.time('add_layers_model.predict()');
+//                 preds = add_layers_model.predict(input_tensors);
+//                 console.timeEnd('add_layers_model.predict()');
+//                 console.log(preds);
+                
+                console.time('add_graph_model.predict()');
+                const img2 = await getProcessedFrame(channels_format='channels_first');
+                const input_tensors1 = {
+                    'i0': img2,
+                    'i1': buffer[0],
+                    'i2': buffer[1],
+                    'i3': buffer[2],
+                    'i4': buffer[3],
+                    'i5': buffer[4],
+                    'i6': buffer[5],
+                    'i7': buffer[6],
+                    'i8': buffer[7],
+                    'i9': buffer[8],
+                    'i10': buffer[9]
+                }
+                preds = add_graph_model.predict(input_tensors1);
+                console.timeEnd('add_graph_model.predict()');
+                console.log(preds);
+                
+                console.time('keras_tsm_graph.predict()');
+                const input_tensors2 = {
+                    'i0': img1,
+                    'i1': buffer[0].transpose([0, 2, 3, 1]),
+                    'i2': buffer[1].transpose([0, 2, 3, 1]),
+                    'i3': buffer[2].transpose([0, 2, 3, 1]),
+                    'i4': buffer[3].transpose([0, 2, 3, 1]),
+                    'i5': buffer[4].transpose([0, 2, 3, 1]),
+                    'i6': buffer[5].transpose([0, 2, 3, 1]),
+                    'i7': buffer[6].transpose([0, 2, 3, 1]),
+                    'i8': buffer[7].transpose([0, 2, 3, 1]),
+                    'i9': buffer[8].transpose([0, 2, 3, 1]),
+                    'i10': buffer[9].transpose([0, 2, 3, 1]),
+                }
+                preds = keras_tsm_graph.predict(input_tensors2);
+                console.timeEnd('keras_tsm_graph.predict()');
+                console.log(preds);
+                preds.forEach(t => t.print()) // log out the data of all tensors
+//                 const data = []
+//                 for (let i = 0; i < preds.length; i++)
+//                     data.push(preds[i].dataSync())  // get the data
+                
+                img1.dispose();
+                img2.dispose();
                 await tf.nextFrame();
             }
         }
-        // http://127.0.0.1:8080/debug_jestnet.html
+        // http://127.0.0.1:8080/front/debug_jestnet.html
         // Initialize the application.
         predict();
     
