@@ -187,89 +187,108 @@ def MobileNetV2TSM(input_shapes=None,
 #       padding=imagenet_utils.correct_pad(img_input, 3),
 #       name='Conv1_pad')(img_input)
   x = img_input
+    
+  block_id = 0
   x = layers.Conv2D(
       first_block_filters,
       kernel_size=3,
       strides=(2, 2),
-      padding='valid',
+      padding='same',
       use_bias=False,
-      name='Conv1')(
+      name='features.{}.0'.format(block_id))(
           x)
   x = layers.BatchNormalization(
-      axis=channel_axis, epsilon=1e-3, momentum=0.999, name='bn_Conv1')(
+      axis=channel_axis, epsilon=1e-5, momentum=0.1, name='features.{}.1'.format(block_id))(
           x)
-  x = layers.ReLU(6., name='Conv1_relu')(x)
+  x = layers.ReLU(6., name='features.{}.relu.2'.format(block_id))(x)
 
+  block_id += 1
   x = _inverted_res_block(  # 0
-      x, filters=16, alpha=alpha, stride=1, expansion=1, block_id=0)
+      x, filters=16, alpha=alpha, stride=1, expansion=1, block_id=block_id)
 
+  block_id += 1
   x = _inverted_res_block(  # 1
-      x, filters=24, alpha=alpha, stride=2, expansion=6, block_id=1)
+      x, filters=24, alpha=alpha, stride=2, expansion=6, block_id=block_id)
+  block_id += 1
   x, buf = _inverted_res_block_with_shift(  # 2
-      x, shift_buffer[0], filters=24, alpha=alpha, stride=1, expansion=6, block_id=2)
+      x, shift_buffer[0], filters=24, alpha=alpha, stride=1, expansion=6, block_id=block_id)
   order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 1.0  # !!! assumes that `channels_last`, not `first`
   buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
 
+  block_id += 1
   x = _inverted_res_block(  # 3
-      x, filters=32, alpha=alpha, stride=2, expansion=6, block_id=3)
+      x, filters=32, alpha=alpha, stride=2, expansion=6, block_id=block_id)
+  block_id += 1
   x, buf = _inverted_res_block_with_shift(  # 4
-      x, shift_buffer[1], filters=32, alpha=alpha, stride=1, expansion=6, block_id=4)
+      x, shift_buffer[1], filters=32, alpha=alpha, stride=1, expansion=6, block_id=block_id)
   order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 2.0
   buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
+  block_id += 1
   x, buf = _inverted_res_block_with_shift(  # 5
-      x, shift_buffer[2], filters=32, alpha=alpha, stride=1, expansion=6, block_id=5)
+      x, shift_buffer[2], filters=32, alpha=alpha, stride=1, expansion=6, block_id=block_id)
   order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 3.0
   buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
 
+  block_id += 1
   x = _inverted_res_block(  # 6
-      x, filters=64, alpha=alpha, stride=2, expansion=6, block_id=6)
+      x, filters=64, alpha=alpha, stride=2, expansion=6, block_id=block_id)
+  block_id += 1
   x, buf = _inverted_res_block_with_shift(  # 7
-      x, shift_buffer[3], filters=64, alpha=alpha, stride=1, expansion=6, block_id=7)
+      x, shift_buffer[3], filters=64, alpha=alpha, stride=1, expansion=6, block_id=block_id)
   order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 4.0
   buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
+  block_id += 1
   x, buf = _inverted_res_block_with_shift(  # 8
-      x, shift_buffer[4], filters=64, alpha=alpha, stride=1, expansion=6, block_id=8)
+      x, shift_buffer[4], filters=64, alpha=alpha, stride=1, expansion=6, block_id=block_id)
   order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 5.0
   buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
+  block_id += 1
   x, buf = _inverted_res_block_with_shift(  # 9
-      x, shift_buffer[5], filters=64, alpha=alpha, stride=1, expansion=6, block_id=9)
+      x, shift_buffer[5], filters=64, alpha=alpha, stride=1, expansion=6, block_id=block_id)
   order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 6.0
   buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
 
+  block_id += 1
   x = _inverted_res_block(  # 10
-      x, filters=96, alpha=alpha, stride=1, expansion=6, block_id=10)
+      x, filters=96, alpha=alpha, stride=1, expansion=6, block_id=block_id)
+  block_id += 1
   x, buf = _inverted_res_block_with_shift(  # 11
-      x, shift_buffer[6], filters=96, alpha=alpha, stride=1, expansion=6, block_id=11)
+      x, shift_buffer[6], filters=96, alpha=alpha, stride=1, expansion=6, block_id=block_id)
   order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 7.0
   buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
+  block_id += 1
   x, buf = _inverted_res_block_with_shift(  # 12
-      x, shift_buffer[7], filters=96, alpha=alpha, stride=1, expansion=6, block_id=12)
+      x, shift_buffer[7], filters=96, alpha=alpha, stride=1, expansion=6, block_id=block_id)
   order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 8.0
   buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
 
+  block_id += 1
   x = _inverted_res_block(  # 13
-      x, filters=160, alpha=alpha, stride=2, expansion=6, block_id=13)
+      x, filters=160, alpha=alpha, stride=2, expansion=6, block_id=block_id)
+  block_id += 1
   x, buf = _inverted_res_block_with_shift(  # 14
-      x, shift_buffer[8], filters=160, alpha=alpha, stride=1, expansion=6, block_id=14)
+      x, shift_buffer[8], filters=160, alpha=alpha, stride=1, expansion=6, block_id=block_id)
   order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 9.0
   buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
+  block_id += 1
   x, buf = _inverted_res_block_with_shift(  # 15
-      x, shift_buffer[9], filters=160, alpha=alpha, stride=1, expansion=6, block_id=15)
+      x, shift_buffer[9], filters=160, alpha=alpha, stride=1, expansion=6, block_id=block_id)
   order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 10.0
   buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
 
+  block_id += 1
   x = _inverted_res_block(  # 16
-      x, filters=320, alpha=alpha, stride=1, expansion=6, block_id=16)
+      x, filters=320, alpha=alpha, stride=1, expansion=6, block_id=block_id)
 
   # no alpha applied to last conv as stated in the paper:
   # if the width multiplier is greater than 1 we
@@ -279,38 +298,21 @@ def MobileNetV2TSM(input_shapes=None,
   else:
     last_block_filters = 1280
 
+  block_id += 1
   x = layers.Conv2D(
-      last_block_filters, kernel_size=1, use_bias=False, name='Conv_1')(
+      last_block_filters, kernel_size=1, padding='valid', use_bias=False, name='features.{}.0'.format(block_id))(
           x)
   x = layers.BatchNormalization(
-      axis=channel_axis, epsilon=1e-3, momentum=0.999, name='Conv_1_bn')(
+      axis=channel_axis, epsilon=1e-5, momentum=0.1, name='features.{}.1'.format(block_id))(
           x)
-  x = layers.ReLU(6., name='out_relu')(x)
+  x = layers.ReLU(6., name='features.{}.relu.2'.format(block_id))(x)
 
-  x = layers.GlobalAveragePooling2D()(x)
+  x = layers.GlobalAveragePooling2D(data_format=backend.image_data_format())(x)
 #     imagenet_utils.validate_activation(classifier_activation, weights)
-  x = layers.Dense(classes, activation=None, name='o0')(x)
+  x = layers.Dense(classes, activation=None, name='classifier')(x)
 
   # Create model.
-  model = training.Model(inputs, [x, *out_buffer], name='mobilenetv2_%0.2f_%s' % (alpha, img_input.shape[0]))
-
-  # Load weights.
-  if weights == 'imagenet':
-    if include_top:
-      model_name = ('mobilenet_v2_weights_tf_dim_ordering_tf_kernels_' +
-                    str(alpha) + '_' + str(rows) + '.h5')
-      weight_path = BASE_WEIGHT_PATH + model_name
-      weights_path = data_utils.get_file(
-          model_name, weight_path, cache_subdir='models')
-    else:
-      model_name = ('mobilenet_v2_weights_tf_dim_ordering_tf_kernels_' +
-                    str(alpha) + '_' + str(rows) + '_no_top' + '.h5')
-      weight_path = BASE_WEIGHT_PATH + model_name
-      weights_path = data_utils.get_file(
-          model_name, weight_path, cache_subdir='models')
-    model.load_weights(weights_path)
-  elif weights is not None:
-    model.load_weights(weights)
+  model = training.Model(inputs, [x, *out_buffer], name='mobilenetv2_%0.2f_%s' % (alpha, 224))
 
   return model
 
@@ -323,65 +325,67 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
   pointwise_conv_filters = int(filters * alpha)
   pointwise_filters = _make_divisible(pointwise_conv_filters, 8)
   x = inputs
-  prefix = 'block_{}_'.format(block_id)
+  prefix = 'features.{}'.format(block_id)
 
-  if block_id:
-    # Expand
-    x = layers.Conv2D(
-        expansion * in_channels,
-        kernel_size=1,
-        padding='same',
-        use_bias=False,
-        activation=None,
-        name=prefix + 'expand')(
-            x)
-    x = layers.BatchNormalization(
-        axis=channel_axis,
-        epsilon=1e-3,
-        momentum=0.999,
-        name=prefix + 'expand_BN')(
-            x)
-    x = layers.ReLU(6., name=prefix + 'expand_relu')(x)
-  else:
-    prefix = 'expanded_conv_'
+  cnt = 0  # for name compatibility with PyTorch
+  # Expand
+  if expansion > 1:
+      x = layers.Conv2D(
+          expansion * in_channels,
+          kernel_size=1,
+          padding='valid',
+          use_bias=False,
+          activation=None,
+          name=prefix + '.conv.{}'.format(cnt))(
+              x)
+      cnt += 1
+      x = layers.BatchNormalization(
+          axis=channel_axis,
+          epsilon=1e-5,
+          momentum=0.1,
+          name=prefix + '.conv.{}'.format(cnt))(
+              x)
+      cnt += 1
+      x = layers.ReLU(6., name=prefix + '.conv.relu.{}'.format(cnt))(x)
+      cnt += 1
 
   # Depthwise
-  if stride == 2:
-    x = layers.ZeroPadding2D(
-        padding=imagenet_utils.correct_pad(x, 3),
-        name=prefix + 'pad')(x)
   x = layers.DepthwiseConv2D(
       kernel_size=3,
       strides=stride,
       activation=None,
       use_bias=False,
-      padding='same' if stride == 1 else 'valid',
-      name=prefix + 'depthwise')(
+      padding='same',
+      name=prefix + '.conv.{}'.format(cnt))(
           x)
+  cnt += 1
   x = layers.BatchNormalization(
       axis=channel_axis,
-      epsilon=1e-3,
-      momentum=0.999,
-      name=prefix + 'depthwise_BN')(
+      epsilon=1e-5,
+      momentum=0.1,
+      name=prefix + '.conv.{}'.format(cnt))(
           x)
-
-  x = layers.ReLU(6., name=prefix + 'depthwise_relu')(x)
+  cnt += 1
+  x = layers.ReLU(6., name=prefix + '.conv.relu.{}'.format(cnt))(x)
+  cnt += 1
 
   # Project
   x = layers.Conv2D(
       pointwise_filters,
       kernel_size=1,
-      padding='same',
+      padding='valid',
       use_bias=False,
       activation=None,
-      name=prefix + 'project')(
+      name=prefix + '.conv.{}'.format(cnt))(
           x)
+  cnt += 1
   x = layers.BatchNormalization(
       axis=channel_axis,
-      epsilon=1e-3,
-      momentum=0.999,
-      name=prefix + 'project_BN')(
+      epsilon=1e-5,
+      momentum=0.1,
+      name=prefix + '.conv.{}'.format(cnt))(
           x)
+  cnt += 1
 
   if in_channels == pointwise_filters and stride == 1:
     return layers.Add(name=prefix + 'add')([inputs, x])
@@ -398,75 +402,74 @@ def _inverted_res_block_with_shift(inputs, shift_buffer, expansion, stride, alph
     
   # !!!
   c = inputs.shape[channel_axis]
-#   print(c)
   if channel_axis == 1:
     x1, x2 = inputs[:, : c // 8], inputs[:, c // 8:]
   else:
     x1, x2 = inputs[:, :, :, : c // 8], inputs[:, :, :, c // 8:]
   x = layers.concatenate([shift_buffer, x2], axis=channel_axis)
+  prefix = 'features.{}'.format(block_id)
 
-  prefix = 'block_{}_'.format(block_id)
-
-  if block_id:
-    # Expand
-    x = layers.Conv2D(
-        expansion * in_channels,
-        kernel_size=1,
-        padding='same',
-        use_bias=False,
-        activation=None,
-        name=prefix + 'expand')(
-            x)
-    x = layers.BatchNormalization(
-        axis=channel_axis,
-        epsilon=1e-3,
-        momentum=0.999,
-        name=prefix + 'expand_BN')(
-            x)
-    x = layers.ReLU(6., name=prefix + 'expand_relu')(x)
-  else:
-    prefix = 'expanded_conv_'
+  cnt = 0  # for name compatibility with PyTorch
+  # Expand
+  if expansion > 1:
+      x = layers.Conv2D(
+          expansion * in_channels,
+          kernel_size=1,
+          padding='valid',
+          use_bias=False,
+          activation=None,
+          name=prefix + '.conv.{}'.format(cnt))(
+              x)
+      cnt += 1
+      x = layers.BatchNormalization(
+          axis=channel_axis,
+          epsilon=1e-5,
+          momentum=0.1,
+          name=prefix + '.conv.{}'.format(cnt))(
+              x)
+      cnt += 1
+      x = layers.ReLU(6., name=prefix + '.conv.relu.{}'.format(cnt))(x)
+      cnt += 1
 
   # Depthwise
-  if stride == 2:
-    x = layers.ZeroPadding2D(
-        padding=imagenet_utils.correct_pad(x, 3),
-        name=prefix + 'pad')(x)
   x = layers.DepthwiseConv2D(
       kernel_size=3,
       strides=stride,
       activation=None,
       use_bias=False,
-      padding='same' if stride == 1 else 'valid',
-      name=prefix + 'depthwise')(
+      padding='same',
+      name=prefix + '.conv.{}'.format(cnt))(
           x)
+  cnt += 1
   x = layers.BatchNormalization(
       axis=channel_axis,
-      epsilon=1e-3,
-      momentum=0.999,
-      name=prefix + 'depthwise_BN')(
+      epsilon=1e-5,
+      momentum=0.1,
+      name=prefix + '.conv.{}'.format(cnt))(
           x)
-
-  x = layers.ReLU(6., name=prefix + 'depthwise_relu')(x)
+  cnt += 1
+  x = layers.ReLU(6., name=prefix + '.conv.relu.{}'.format(cnt))(x)
+  cnt += 1
 
   # Project
   x = layers.Conv2D(
       pointwise_filters,
       kernel_size=1,
-      padding='same',
+      padding='valid',
       use_bias=False,
       activation=None,
-      name=prefix + 'project')(
+      name=prefix + '.conv.{}'.format(cnt))(
           x)
+  cnt += 1
   x = layers.BatchNormalization(
       axis=channel_axis,
-      epsilon=1e-3,
-      momentum=0.999,
-      name=prefix + 'project_BN')(
+      epsilon=1e-5,
+      momentum=0.1,
+      name=prefix + '.conv.{}'.format(cnt))(
           x)
-  if in_channels == pointwise_filters and stride == 1:
-    return layers.Add(name=prefix + 'add')([inputs, x]), x1  # !!!
-  return x, x1  # !!!
+  cnt += 1
+    
+  return layers.Add(name=prefix + 'add')([inputs, x]), x1  # !!!
 
 
 def _make_divisible(v, divisor, min_value=None):
