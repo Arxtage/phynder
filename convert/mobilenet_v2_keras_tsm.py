@@ -207,45 +207,65 @@ def MobileNetV2TSM(input_shapes=None,
       x, filters=24, alpha=alpha, stride=2, expansion=6, block_id=1)
   x, buf = _inverted_res_block_with_shift(  # 2
       x, shift_buffer[0], filters=24, alpha=alpha, stride=1, expansion=6, block_id=2)
+  order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 1.0  # !!! assumes that `channels_last`, not `first`
+  buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
 
   x = _inverted_res_block(  # 3
       x, filters=32, alpha=alpha, stride=2, expansion=6, block_id=3)
   x, buf = _inverted_res_block_with_shift(  # 4
       x, shift_buffer[1], filters=32, alpha=alpha, stride=1, expansion=6, block_id=4)
+  order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 2.0
+  buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
   x, buf = _inverted_res_block_with_shift(  # 5
       x, shift_buffer[2], filters=32, alpha=alpha, stride=1, expansion=6, block_id=5)
+  order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 3.0
+  buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
 
   x = _inverted_res_block(  # 6
       x, filters=64, alpha=alpha, stride=2, expansion=6, block_id=6)
   x, buf = _inverted_res_block_with_shift(  # 7
       x, shift_buffer[3], filters=64, alpha=alpha, stride=1, expansion=6, block_id=7)
+  order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 4.0
+  buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
   x, buf = _inverted_res_block_with_shift(  # 8
       x, shift_buffer[4], filters=64, alpha=alpha, stride=1, expansion=6, block_id=8)
+  order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 5.0
+  buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
   x, buf = _inverted_res_block_with_shift(  # 9
       x, shift_buffer[5], filters=64, alpha=alpha, stride=1, expansion=6, block_id=9)
+  order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 6.0
+  buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
 
   x = _inverted_res_block(  # 10
       x, filters=96, alpha=alpha, stride=1, expansion=6, block_id=10)
   x, buf = _inverted_res_block_with_shift(  # 11
       x, shift_buffer[6], filters=96, alpha=alpha, stride=1, expansion=6, block_id=11)
+  order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 7.0
+  buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
   x, buf = _inverted_res_block_with_shift(  # 12
       x, shift_buffer[7], filters=96, alpha=alpha, stride=1, expansion=6, block_id=12)
+  order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 8.0
+  buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
 
   x = _inverted_res_block(  # 13
       x, filters=160, alpha=alpha, stride=2, expansion=6, block_id=13)
   x, buf = _inverted_res_block_with_shift(  # 14
       x, shift_buffer[8], filters=160, alpha=alpha, stride=1, expansion=6, block_id=14)
+  order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 9.0
+  buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
   x, buf = _inverted_res_block_with_shift(  # 15
       x, shift_buffer[9], filters=160, alpha=alpha, stride=1, expansion=6, block_id=15)
+  order_id = backend.zeros((1, buf.shape[1], buf.shape[2], 1)) + 10.0
+  buf = layers.Concatenate(axis=channel_axis)([buf, order_id])
   out_buffer.append(buf)
 
   x = _inverted_res_block(  # 16
