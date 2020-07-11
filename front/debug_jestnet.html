@@ -24,12 +24,6 @@
 <!--   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@2.0.0/dist/tf.min.js"></script> -->
     <script>
         async function runONNX() {
-//             try {
-//                 webcam = await tf.data.webcam(document.getElementById('webcam'));
-//             } catch (e) {
-//                 console.log(e);
-//                 document.getElementById('no-webcam').style.display = 'block';
-//             }
             const session = new onnx.InferenceSession();
             // load the ONNX model file
             const MODEL_ONNX = '../convert/models/mv2_simple.onnx';
@@ -43,7 +37,6 @@
                 console.log(outputMap.get("o0"));
             }
         }
-        
 //         runONNX();
         
         async function loadJestNet() {
@@ -55,11 +48,11 @@
             return model;
         }
         
-        /**
-         * Captures a frame from the webcam and normalizes it between -1 and 1.
-         * Returns a batched image (1-element batch) of shape [1, w, h, c].
-         */
         async function getProcessedFrame(channels_format) {
+            /**
+             * Captures a frame from the webcam and normalizes it between -1 and 1.
+             * Returns a batched image (1-element batch) of shape [1, w, h, c].
+             */
             const img = await webcam.capture();  // (224, 224, 3) 0 ~ 255
             if (channels_format == 'channels_first') {
                 const processedImg =
@@ -74,11 +67,23 @@
             }
         }
         
-        const isPredicting = true;
+        async function asyncForEach(array, callback) {
+            for (let index = 0; index < array.length; index++) {
+                await callback(array[index], index, array);
+            }
+        }
+        
+        function print_order_id(item) {
+          if (item.length == 1) {
+              console.log(0);
+          } else {
+               item[1].array().then(array => console.log(array[0][0][0][0]));
+          }
+        }
         
         async function predict() {
 //             tf.ENV.set('WEBGL_PACK', false);  // !!!
-            // init webcam
+            // Init webcam
             try {
                 webcam = await tf.data.webcam(document.getElementById('webcam'));
             } catch (e) {
@@ -90,29 +95,29 @@
 //             console.log(jestNet);
 //             const mv2_official_model = await mobilenet.load();
 //             console.log(mv2_official_model);
-            const keras_mv2_model = await tf.loadLayersModel('../convert/models/keras_mobilenetv2/model.json');
-            console.log(keras_mv2_model);
+//             const keras_mv2_model = await tf.loadLayersModel('../convert/models/keras_mobilenetv2/model.json');
+//             console.log(keras_mv2_model);
 //             const add_layers_model = await tf.loadLayersModel('../convert/models/add_model/model.json');
 //             console.log(add_layers_model);
-            const add_graph_model = await tf.loadGraphModel('../convert/models/add_graph_model/model.json');
-            console.log(add_graph_model);
+//             const add_graph_model = await tf.loadGraphModel('../convert/models/add_graph_model/model.json');
+//             console.log(add_graph_model);
 //             const keras_tsm = await tf.loadLayersModel('../convert/models/keras_tsm/model.json');  // no TensorFlowOpLayer
 //             console.log(keras_tsm);
             const keras_tsm_graph = await tf.loadGraphModel('../convert/models/keras_tsm_graph/model.json');
             console.log(keras_tsm_graph);
             // Set the initial buffer
-            const buffer = [
-                tf.zeros([1, 3, 56, 56]),
-                tf.zeros([1, 4, 28, 28]),
-                tf.zeros([1, 4, 28, 28]),
-                tf.zeros([1, 8, 14, 14]),
-                tf.zeros([1, 8, 14, 14]),
-                tf.zeros([1, 8, 14, 14]),
-                tf.zeros([1, 12, 14, 14]),
-                tf.zeros([1, 12, 14, 14]),
-                tf.zeros([1, 20, 7, 7]),
-                tf.zeros([1, 20, 7, 7])
-            ]
+            buffer = {
+                0: tf.ones([1, 3, 56, 56]).transpose([0, 2, 3, 1]),
+                1: tf.ones([1, 4, 28, 28]).transpose([0, 2, 3, 1]),
+                2: tf.ones([1, 4, 28, 28]).transpose([0, 2, 3, 1]),
+                3: tf.ones([1, 8, 14, 14]).transpose([0, 2, 3, 1]),
+                4: tf.ones([1, 8, 14, 14]).transpose([0, 2, 3, 1]),
+                5: tf.ones([1, 8, 14, 14]).transpose([0, 2, 3, 1]),
+                6: tf.ones([1, 12, 14, 14]).transpose([0, 2, 3, 1]),
+                7: tf.ones([1, 12, 14, 14]).transpose([0, 2, 3, 1]),
+                8: tf.ones([1, 20, 7, 7]).transpose([0, 2, 3, 1]),
+                9: tf.ones([1, 20, 7, 7]).transpose([0, 2, 3, 1])
+            }
             // Runtime loop
             for (var i = 0; i < 20; ++i) {
 //                 const cat_img = document.getElementById('img');
@@ -132,21 +137,40 @@
 //                 console.timeEnd('mv2_official_model.predict()');
 //                 console.log(preds);
                 
-                console.time('keras_mv2_model.predict()');
-                const img1 = await getProcessedFrame(channels_format='channels_last');
-                preds = keras_mv2_model.predict(img1);
-                console.timeEnd('keras_mv2_model.predict()');
-                console.log(preds);
+//                 console.time('keras_mv2_model.predict()');
+//                 const img1 = await getProcessedFrame(channels_format='channels_last');
+//                 preds = keras_mv2_model.predict(img1);
+//                 console.timeEnd('keras_mv2_model.predict()');
+//                 console.log(preds);
                 
 //                 console.time('add_layers_model.predict()');
 //                 preds = add_layers_model.predict(input_tensors);
 //                 console.timeEnd('add_layers_model.predict()');
 //                 console.log(preds);
                 
-                console.time('add_graph_model.predict()');
-                const img2 = await getProcessedFrame(channels_format='channels_first');
-                const input_tensors1 = {
-                    'i0': img2,
+//                 console.time('add_graph_model.predict()');
+//                 const img2 = await getProcessedFrame(channels_format='channels_first');
+//                 const input_tensors1 = {
+//                     'i0': img2,
+//                     'i1': buffer[0],
+//                     'i2': buffer[1],
+//                     'i3': buffer[2],
+//                     'i4': buffer[3],
+//                     'i5': buffer[4],
+//                     'i6': buffer[5],
+//                     'i7': buffer[6],
+//                     'i8': buffer[7],
+//                     'i9': buffer[8],
+//                     'i10': buffer[9]
+//                 }
+//                 preds = add_graph_model.predict(input_tensors1);
+//                 console.timeEnd('add_graph_model.predict()');
+//                 console.log(preds);
+                
+//                 console.time('keras_tsm_graph.predict()');
+                const img = await getProcessedFrame(channels_format='channels_last');
+                const input_tensors = {
+                    'i0': img,
                     'i1': buffer[0],
                     'i2': buffer[1],
                     'i3': buffer[2],
@@ -156,36 +180,45 @@
                     'i7': buffer[6],
                     'i8': buffer[7],
                     'i9': buffer[8],
-                    'i10': buffer[9]
+                    'i10': buffer[9],
                 }
-                preds = add_graph_model.predict(input_tensors1);
-                console.timeEnd('add_graph_model.predict()');
-                console.log(preds);
+                preds = keras_tsm_graph.predict(input_tensors);
+//                 console.timeEnd('keras_tsm_graph.predict()');
+//                 console.log(preds);
                 
-                console.time('keras_tsm_graph.predict()');
-                const input_tensors2 = {
-                    'i0': img1,
-                    'i1': buffer[0].transpose([0, 2, 3, 1]),
-                    'i2': buffer[1].transpose([0, 2, 3, 1]),
-                    'i3': buffer[2].transpose([0, 2, 3, 1]),
-                    'i4': buffer[3].transpose([0, 2, 3, 1]),
-                    'i5': buffer[4].transpose([0, 2, 3, 1]),
-                    'i6': buffer[5].transpose([0, 2, 3, 1]),
-                    'i7': buffer[6].transpose([0, 2, 3, 1]),
-                    'i8': buffer[7].transpose([0, 2, 3, 1]),
-                    'i9': buffer[8].transpose([0, 2, 3, 1]),
-                    'i10': buffer[9].transpose([0, 2, 3, 1]),
+                async function rewrite_buffer(item) {
+                  if (item.shape.length == 2) {
+                      const jest_id = await item.argMax(axis=1).array();
+                      console.log('Jesture ID:', jest_id[0]);
+                  } else if (item.shape.length == 4) {
+                      const [buf, order_id] = tf.split(item, [item.shape[3]-1, 1], 3);
+                      const order_id_value = await order_id.array();
+//                       console.log(order_id_value[0][0][0][0]);  // debug
+                      buffer[order_id_value[0][0][0][0]-1] = buf;
+                  }
                 }
-                preds = keras_tsm_graph.predict(input_tensors2);
-                console.timeEnd('keras_tsm_graph.predict()');
-                console.log(preds);
-                preds.forEach(t => t.print()) // log out the data of all tensors
-//                 const data = []
-//                 for (let i = 0; i < preds.length; i++)
-//                     data.push(preds[i].dataSync())  // get the data
                 
-                img1.dispose();
-                img2.dispose();
+                const start = async () => { await asyncForEach(preds, rewrite_buffer); }
+                await start();
+                
+//                 if (i == 19) {
+//                     preds.forEach(t => t.print());
+//                     console.log('--------------------');
+//                     console.log(typeof preds);
+//                     console.log(buffer);
+//                     for (var key in buffer) {
+//                         buffer[key].print();
+//                     }
+//                     const start = async () => { await asyncForEach(preds, rewrite_buffer); }
+//                     await start();
+//                     console.log(buffer);
+//                     for (var key in buffer) {
+//                         buffer[key].print();
+//                     }
+//                 }
+                
+                img.dispose();
+//                 img2.dispose();
                 await tf.nextFrame();
             }
         }
