@@ -4,9 +4,14 @@ import random
 import requests
 import config
 
+# vk uses only port 80, redirecting:
+# sudo ncat --sh-exec "ncat 127.0.0.1 80" -l 5000 --keep-open
+#
+#
+
 app = Flask(__name__)
 
-
+VK_API_ID = 7534914
 @app.route("/")
 def home():
     # randomly select a movie
@@ -14,22 +19,12 @@ def home():
         reader = csv.reader(f)
         row = random.choice(list(reader))
 
-    movie = {
-        #'id': row[0],
-        #'category': row[1],
-        'title': row[2],
-        'director': row[3],
-        'cast': row[4],
-        'country': row[5],
-        'date_added': row[6],
-        'release_year': row[7],
-        'maturity': row[8],
-        #'duration': row[9],
-        #'genre': row[10],
-        #'description': row[11],
-        # default poster just so we see something
+    person = {
+        'id': row[1],
+        'name': row[2],
+        'surname': row[3],
+        'sex': row[6],
         'image': eval(row[8])['photo']['sizes'][-1]['url'],
-        #'imdb': 'Not Available'
    }
    
    
@@ -46,11 +41,16 @@ def home():
     ##if 'imdbRating' in movie_data:
     #    movie['imdb'] = movie_data['imdbRating']
     # send all this data to the home.html template
-    return render_template("home.html", movie=movie)
+    
+    return render_template("home.html", person=person)
 
 @app.route("/about")
 def about():
     return render_template("about.html")
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.route("/login")
+def login():
+    return render_template("login.html")
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=80, debug=True)
