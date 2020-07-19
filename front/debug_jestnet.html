@@ -81,6 +81,36 @@
           }
         }
         
+        const categories = [
+            "Doing other things",  // 0
+            "Drumming Fingers",    // 1
+            "No gesture",          // 2
+            "Pulling Hand In",     // 3
+            "Pulling Two Fingers In",    // 4
+            "Pushing Hand Away",         // 5
+            "Pushing Two Fingers Away",  // 6
+            "Rolling Hand Backward",  // 7
+            "Rolling Hand Forward",   // 8
+            "Shaking Hand",  // 9
+            "Sliding Two Fingers Down",   // 10
+            "Sliding Two Fingers Left",   // 11
+            "Sliding Two Fingers Right",  // 12
+            "Sliding Two Fingers Up",     // 13
+            "Stop Sign",  // 14
+            "Swiping Down",   // 15
+            "Swiping Left",   // 16
+            "Swiping Right",  // 17
+            "Swiping Up",  // 18
+            "Thumb Down",  // 19
+            "Thumb Up",    // 20
+            "Turning Hand Clockwise",         // 21
+            "Turning Hand Counterclockwise",  // 22
+            "Zooming In With Full Hand",      // 23
+            "Zooming In With Two Fingers",    // 24
+            "Zooming Out With Full Hand",     // 25
+            "Zooming Out With Two Fingers"    // 26
+        ];
+        
         async function predict() {
 //             tf.ENV.set('WEBGL_PACK', false);  // !!!
             // Init webcam
@@ -107,19 +137,21 @@
             console.log(keras_tsm_graph);
             // Set the initial buffer
             buffer = {
-                0: tf.ones([1, 3, 56, 56]).transpose([0, 2, 3, 1]),
-                1: tf.ones([1, 4, 28, 28]).transpose([0, 2, 3, 1]),
-                2: tf.ones([1, 4, 28, 28]).transpose([0, 2, 3, 1]),
-                3: tf.ones([1, 8, 14, 14]).transpose([0, 2, 3, 1]),
-                4: tf.ones([1, 8, 14, 14]).transpose([0, 2, 3, 1]),
-                5: tf.ones([1, 8, 14, 14]).transpose([0, 2, 3, 1]),
-                6: tf.ones([1, 12, 14, 14]).transpose([0, 2, 3, 1]),
-                7: tf.ones([1, 12, 14, 14]).transpose([0, 2, 3, 1]),
-                8: tf.ones([1, 20, 7, 7]).transpose([0, 2, 3, 1]),
-                9: tf.ones([1, 20, 7, 7]).transpose([0, 2, 3, 1])
-            }
+                0: tf.ones([1, 3, 55, 55]).transpose([0, 2, 3, 1]),
+                1: tf.ones([1, 4, 27, 27]).transpose([0, 2, 3, 1]),
+                2: tf.ones([1, 4, 27, 27]).transpose([0, 2, 3, 1]),
+                3: tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
+                4: tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
+                5: tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
+                6: tf.ones([1, 12, 13, 13]).transpose([0, 2, 3, 1]),
+                7: tf.ones([1, 12, 13, 13]).transpose([0, 2, 3, 1]),
+                8: tf.ones([1, 20, 6, 6]).transpose([0, 2, 3, 1]),
+                9: tf.ones([1, 20, 6, 6]).transpose([0, 2, 3, 1])
+            }  // SHAPES WERE DECREASED BY 1 !!!
             // Runtime loop
-            for (var i = 0; i < 20; ++i) {
+            //for (var i = 0; i < 20; ++i) {
+            const predicting = true;
+            while (predicting) {
 //                 const cat_img = document.getElementById('img');
 //                 const cat_img = new Image();
 //                 cat_img.crossOrigin = "anonymous";
@@ -190,6 +222,7 @@
                   if (item.shape.length == 2) {
                       const jest_id = await item.argMax(axis=1).array();
                       console.log('Jesture ID:', jest_id[0]);
+                      console.log('Jesture:', categories[jest_id[0]]);
                   } else if (item.shape.length == 4) {
                       const [buf, order_id] = tf.split(item, [item.shape[3]-1, 1], 3);
                       const order_id_value = await order_id.array();

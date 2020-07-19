@@ -193,7 +193,7 @@ def MobileNetV2TSM(input_shapes=None,
       first_block_filters,
       kernel_size=3,
       strides=(2, 2),
-      padding='same',
+      padding='valid',  # !!!
       use_bias=False,
       name='features.{}.0'.format(block_id))(
           x)
@@ -355,7 +355,7 @@ def _inverted_res_block(inputs, expansion, stride, alpha, filters, block_id):
       strides=stride,
       activation=None,
       use_bias=False,
-      padding='same',
+      padding='same' if stride == 1 else 'valid',  # !!!
       name=prefix + '.conv.{}'.format(cnt))(
           x)
   cnt += 1
@@ -437,7 +437,7 @@ def _inverted_res_block_with_shift(inputs, shift_buffer, expansion, stride, alph
       strides=stride,
       activation=None,
       use_bias=False,
-      padding='same',
+      padding='same' if stride == 1 else 'valid',  # !!!
       name=prefix + '.conv.{}'.format(cnt))(
           x)
   cnt += 1
