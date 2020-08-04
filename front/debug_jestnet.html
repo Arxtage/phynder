@@ -20,33 +20,40 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0"> </script>
     <script src="https://cdn.jsdelivr.net/npm/onnxjs/dist/onnx.min.js"></script>
-<!--   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-data@2.0.0/dist/tf.min.js"></script> -->
-<!--   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@2.0.0/dist/tf.min.js"></script> -->
     <script>
-        async function runONNX() {
-            const session = new onnx.InferenceSession();
-            // load the ONNX model file
-            const MODEL_ONNX = '../convert/models/mv2_simple.onnx';
-//             const img = await getProcessedFrame();
-            const tensorX = new onnx.Tensor(new Float32Array(1 * 3 * 224 * 224), 'float32', [1, 3, 224, 224])
-            await session.loadModel(MODEL_ONNX);
-            for (var i = 0; i < 100; ++i) {
-                console.time('myOnnxSession');
-                const outputMap = await session.run([tensorX]);
-                console.timeEnd('myOnnxSession');
-                console.log(outputMap.get("o0"));
-            }
-        }
-//         runONNX();
-        
-        async function loadJestNet() {
-//             const MODEL_URL = '../convert/models/jestnet_simple/model.json';
-            const MODEL_URL = '../convert/models/mv2_simple/model.json';
-            const model = await tf.loadGraphModel(MODEL_URL);
-            console.log('JestNet loaded');
-            console.log(model);
-            return model;
-        }
+        const MODEL_PATH = '../convert/models/keras_tsm_graph/model.json'
+        const CATEGORIES = [
+            "Doing other things",  // 0
+            "Drumming Fingers",    // 1
+            "No gesture",          // 2
+            "Pulling Hand In",     // 3
+            "Pulling Two Fingers In",    // 4
+            "Pushing Hand Away",         // 5
+            "Pushing Two Fingers Away",  // 6
+            "Rolling Hand Backward",  // 7
+            "Rolling Hand Forward",   // 8
+            "Shaking Hand",           // 9
+            "Sliding Two Fingers Down",   // 10
+            "Sliding Two Fingers Left",   // 11
+            "Sliding Two Fingers Right",  // 12
+            "Sliding Two Fingers Up",     // 13
+            "Stop Sign",      // 14
+            "Swiping Down",   // 15
+            "Swiping Left",   // 16
+            "Swiping Right",  // 17
+            "Swiping Up",  // 18
+            "Thumb Down",  // 19
+            "Thumb Up",    // 20
+            "Turning Hand Clockwise",         // 21
+            "Turning Hand Counterclockwise",  // 22
+            "Zooming In With Full Hand",      // 23
+            "Zooming In With Two Fingers",    // 24
+            "Zooming Out With Full Hand",     // 25
+            "Zooming Out With Two Fingers"    // 26
+        ];
+        const ILLEGAL_ACTIONS = [7, 8, 21, 22, 3];
+        const HISTORY_LOGIT = true;
+        const REFINE_OUTPUT = true;
         
         async function getProcessedFrame(channels_format) {
             /**
@@ -81,61 +88,37 @@
           }
         }
         
-        const categories = [
-            "Doing other things",  // 0
-            "Drumming Fingers",    // 1
-            "No gesture",          // 2
-            "Pulling Hand In",     // 3
-            "Pulling Two Fingers In",    // 4
-            "Pushing Hand Away",         // 5
-            "Pushing Two Fingers Away",  // 6
-            "Rolling Hand Backward",  // 7
-            "Rolling Hand Forward",   // 8
-            "Shaking Hand",  // 9
-            "Sliding Two Fingers Down",   // 10
-            "Sliding Two Fingers Left",   // 11
-            "Sliding Two Fingers Right",  // 12
-            "Sliding Two Fingers Up",     // 13
-            "Stop Sign",  // 14
-            "Swiping Down",   // 15
-            "Swiping Left",   // 16
-            "Swiping Right",  // 17
-            "Swiping Up",  // 18
-            "Thumb Down",  // 19
-            "Thumb Up",    // 20
-            "Turning Hand Clockwise",         // 21
-            "Turning Hand Counterclockwise",  // 22
-            "Zooming In With Full Hand",      // 23
-            "Zooming In With Two Fingers",    // 24
-            "Zooming Out With Full Hand",     // 25
-            "Zooming Out With Two Fingers"    // 26
-        ];
+        async function process_output(idx_, history) {
+            // idx_: the output of current frame
+            // history: a list containing the history of predictions
+            max_hist_len = 20;  // max history buffer
+            // mask out illegal action
+            if (ILLEGAL_ACTIONS.includes(idx_)) {
+                idx_ = history.slice(-1)[0];
+            }
+            // use only single no action class
+            if (idx_ == 0) {
+                idx_ = 2;
+            }
+            // history smoothing
+            if (idx_ != history.slice(-1)[0]) {
+                if (history.slice(-1)[0] != history.slice(-2)[0]) {  // and history[-2] == history[-3]):
+                    idx_ = history.slice(-1)[0];
+                }
+            }
+            history.push(idx_);
+            history = history.slice(-max_hist_len);
+            return history;
+        }
         
         async function predict() {
-//             tf.ENV.set('WEBGL_PACK', false);  // !!!
-            // Init webcam
             try {
                 webcam = await tf.data.webcam(document.getElementById('webcam'));
             } catch (e) {
                 console.log(e);
                 document.getElementById('no-webcam').style.display = 'block';
             }
-            // Load the gesture recognition model
-//             const jestNet = await loadJestNet();
-//             console.log(jestNet);
-//             const mv2_official_model = await mobilenet.load();
-//             console.log(mv2_official_model);
-//             const keras_mv2_model = await tf.loadLayersModel('../convert/models/keras_mobilenetv2/model.json');
-//             console.log(keras_mv2_model);
-//             const add_layers_model = await tf.loadLayersModel('../convert/models/add_model/model.json');
-//             console.log(add_layers_model);
-//             const add_graph_model = await tf.loadGraphModel('../convert/models/add_graph_model/model.json');
-//             console.log(add_graph_model);
-//             const keras_tsm = await tf.loadLayersModel('../convert/models/keras_tsm/model.json');  // no TensorFlowOpLayer
-//             console.log(keras_tsm);
-            const keras_tsm_graph = await tf.loadGraphModel('../convert/models/keras_tsm_graph/model.json');
-            console.log(keras_tsm_graph);
-            // Set the initial buffer
+            const keras_tsm_graph = await tf.loadGraphModel(MODEL_PATH);
             buffer = {
                 0: tf.ones([1, 3, 55, 55]).transpose([0, 2, 3, 1]),
                 1: tf.ones([1, 4, 27, 27]).transpose([0, 2, 3, 1]),
@@ -147,116 +130,67 @@
                 7: tf.ones([1, 12, 13, 13]).transpose([0, 2, 3, 1]),
                 8: tf.ones([1, 20, 6, 6]).transpose([0, 2, 3, 1]),
                 9: tf.ones([1, 20, 6, 6]).transpose([0, 2, 3, 1])
-            }  // SHAPES WERE DECREASED BY 1 !!!
+            }  // SPATIAL SHAPES WERE DECREASED BY 1 !!!
+            var jest_id = 2;
+            var history = [2, 2];
+            var history_logit = [];
+            
+            async function rewrite_buffer(item) {
+                if (item.shape.length == 2) {
+                    jest_id = await item.argMax(axis=1).array();
+                    if (HISTORY_LOGIT) {
+                        history_logit.push(item);
+                        history_logit = history_logit.slice(-12);
+                        avg_logit = history_logit.reduce(function(a, b){
+                            return a.add(b);
+                        });
+                        jest_id = await avg_logit.argMax(axis=1).array();
+                    }
+                } else if (item.shape.length == 4) {
+                    const [buf, order_id] = tf.split(item, [item.shape[3]-1, 1], 3);
+                    const order_id_value = await order_id.array();
+//                         console.log(order_id_value[0][0][0][0]);  // debug
+                    buffer[order_id_value[0][0][0][0]-1] = buf;
+                }
+            }
+            
             // Runtime loop
-            //for (var i = 0; i < 20; ++i) {
             const predicting = true;
+            var i_frame = 0;
             while (predicting) {
-//                 const cat_img = document.getElementById('img');
-//                 const cat_img = new Image();
-//                 cat_img.crossOrigin = "anonymous";
-//                 cat_img.src = "./cat_img.jpg";  // "https://icatcare.org/app/uploads/2018/06/Layer-1704-1920x840.jpg";
-//                 cat_img.width = 224;
-//                 cat_img.height = 224;
-
-//                 console.time('jestNet.predict()');                
-//                 outputs = jestNet.predict(input_tensors); 
-//                 console.timeEnd('jestNet.predict()');
-//                 console.log(outputs);
-                
-//                 console.time('mv2_official_model.predict()');                
-//                 preds = mv2_official_model.classify(cat_img);
-//                 console.timeEnd('mv2_official_model.predict()');
-//                 console.log(preds);
-                
-//                 console.time('keras_mv2_model.predict()');
-//                 const img1 = await getProcessedFrame(channels_format='channels_last');
-//                 preds = keras_mv2_model.predict(img1);
-//                 console.timeEnd('keras_mv2_model.predict()');
-//                 console.log(preds);
-                
-//                 console.time('add_layers_model.predict()');
-//                 preds = add_layers_model.predict(input_tensors);
-//                 console.timeEnd('add_layers_model.predict()');
-//                 console.log(preds);
-                
-//                 console.time('add_graph_model.predict()');
-//                 const img2 = await getProcessedFrame(channels_format='channels_first');
-//                 const input_tensors1 = {
-//                     'i0': img2,
-//                     'i1': buffer[0],
-//                     'i2': buffer[1],
-//                     'i3': buffer[2],
-//                     'i4': buffer[3],
-//                     'i5': buffer[4],
-//                     'i6': buffer[5],
-//                     'i7': buffer[6],
-//                     'i8': buffer[7],
-//                     'i9': buffer[8],
-//                     'i10': buffer[9]
-//                 }
-//                 preds = add_graph_model.predict(input_tensors1);
-//                 console.timeEnd('add_graph_model.predict()');
-//                 console.log(preds);
-                
 //                 console.time('keras_tsm_graph.predict()');
                 const img = await getProcessedFrame(channels_format='channels_last');
-                const input_tensors = {
-                    'i0': img,
-                    'i1': buffer[0],
-                    'i2': buffer[1],
-                    'i3': buffer[2],
-                    'i4': buffer[3],
-                    'i5': buffer[4],
-                    'i6': buffer[5],
-                    'i7': buffer[6],
-                    'i8': buffer[7],
-                    'i9': buffer[8],
-                    'i10': buffer[9],
+                if (i_frame % 2 == 0) {  // skip every other frame to obtain a suitable frame rate
+                    const input_tensors = {
+                        'i0': img,
+                        'i1': buffer[0],
+                        'i2': buffer[1],
+                        'i3': buffer[2],
+                        'i4': buffer[3],
+                        'i5': buffer[4],
+                        'i6': buffer[5],
+                        'i7': buffer[6],
+                        'i8': buffer[7],
+                        'i9': buffer[8],
+                        'i10': buffer[9],
+                    }
+                    const preds = keras_tsm_graph.predict(input_tensors);
+    //                 console.timeEnd('keras_tsm_graph.predict()');  // prints ~8-20 ms
+                    const start = async () => { await asyncForEach(preds, rewrite_buffer); }  // !!! takes 100ms...
+                    await start(); 
+                    if (REFINE_OUTPUT) {
+                        history = await process_output(jest_id, history);
+                        jest_id = history.slice(-1)[0];
+                    }
+                    console.log(CATEGORIES[jest_id]);
                 }
-                preds = keras_tsm_graph.predict(input_tensors);
-//                 console.timeEnd('keras_tsm_graph.predict()');
-//                 console.log(preds);
-                
-                async function rewrite_buffer(item) {
-                  if (item.shape.length == 2) {
-                      const jest_id = await item.argMax(axis=1).array();
-                      console.log('Jesture ID:', jest_id[0]);
-                      console.log('Jesture:', categories[jest_id[0]]);
-                  } else if (item.shape.length == 4) {
-                      const [buf, order_id] = tf.split(item, [item.shape[3]-1, 1], 3);
-                      const order_id_value = await order_id.array();
-//                       console.log(order_id_value[0][0][0][0]);  // debug
-                      buffer[order_id_value[0][0][0][0]-1] = buf;
-                  }
-                }
-                
-                const start = async () => { await asyncForEach(preds, rewrite_buffer); }
-                await start();
-                
-//                 if (i == 19) {
-//                     preds.forEach(t => t.print());
-//                     console.log('--------------------');
-//                     console.log(typeof preds);
-//                     console.log(buffer);
-//                     for (var key in buffer) {
-//                         buffer[key].print();
-//                     }
-//                     const start = async () => { await asyncForEach(preds, rewrite_buffer); }
-//                     await start();
-//                     console.log(buffer);
-//                     for (var key in buffer) {
-//                         buffer[key].print();
-//                     }
-//                 }
-                
                 img.dispose();
-//                 img2.dispose();
                 await tf.nextFrame();
+                i_frame += 1;
+//                 console.timeEnd('keras_tsm_graph.predict()');  // prints ~100-150 ms
             }
         }
         // http://127.0.0.1:8080/front/debug_jestnet.html
-        // Initialize the application.
         predict();
     
     </script>
