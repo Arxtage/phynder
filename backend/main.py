@@ -71,21 +71,31 @@ def swipes():
             }    
     return render_template("home.html", person=person, user=user)
 
-# background process happening without any refreshing
-@app.route('/background_process_test')
-def background_process_test():
-    print("Hello")
-    return("nothing")
+# @app.route('/process_swipe_left')
+# def process_swipe_left():
+#     print("Swiping Left")
+#     return("nothing")
 
-@app.route('/process_swipe_left')
-def process_swipe_left():
-    print("Swiping Left")
-    return("nothing")
+# @app.route('/process_swipe_right')
+# def process_swipe_right():
+#     print("Swiping Right")
+#     return("nothing")
 
-@app.route('/process_swipe_right')
-def process_swipe_right():
-    print("Swiping Right")
-    return("nothing")
+@app.route('/post_swipe_left', methods = ['POST'])
+def post_swipe_left():
+#     jsdata1 = request.data
+#     jsdata2 = request.name
+    jsdata = request.form['swipe_data']
+    print(jsdata)
+    return('https://sun1-92.userapi.com/dnlKY5Ehvn6DBK69pIe9XARmfe0C68zjkggwBA/UJ5ZqW5sbbk.jpg')  # json.loads(jsdata)[0]
+
+@app.route('/post_swipe_right', methods = ['POST'])
+def post_swipe_right():
+#     jsdata1 = request.data
+#     jsdata2 = request.name
+    jsdata = request.form['swipe_data']
+    print(jsdata)
+    return('https://sun9-15.userapi.com/c830409/v830409625/90304/v_bkC18PLrc.jpg')  # json.loads(jsdata)[0]
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)

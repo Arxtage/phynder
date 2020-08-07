@@ -17,7 +17,9 @@
         <video autoplay playsinline muted id="webcam" width="224" height="224"></video>
       </div>
     </div>
-      
+    <div style="text-align: center;">
+        <img id="img_to_update" src="https://sun9-15.userapi.com/c830409/v830409625/90304/v_bkC18PLrc.jpg" width=256 height=512/>
+    </div>
     <header>
       <div class="container">
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -180,6 +182,7 @@
                       });
                       jest_id = await avg_logit.argMax(axis=1).array();
                   }
+//                   console.log('jesture tensor');  // debug
 //                   console.timeEnd('rewrite_buffer()');
               } else if (item.shape.length == 4) {
                   const [buf, order_id] = tf.split(item, [item.shape[3]-1, 1], 3);
@@ -194,6 +197,7 @@
           var i_frame = 0;
           var combo_left = 0;
           var combo_right = 0;
+          const NUM_FRAMES_UNTIL_ACTION = 4;
           while (predicting) {
 //              console.time('keras_tsm_graph.predict()');
               const img = await getProcessedFrame(channels_format='channels_last');
@@ -214,7 +218,7 @@
                   const preds = keras_tsm_graph.predict(input_tensors);
 //                  console.timeEnd('keras_tsm_graph.predict()');  // prints ~8-20 ms
                   console.time('start()');
-                  const start = async () => { await asyncForEach(preds, rewrite_buffer); }  // !!! takes 100ms...
+                  const start = async () => { await asyncForEach(preds, rewrite_buffer); }  // !!! takes 100-150ms...
                   await start(); 
                   console.timeEnd('start()');
                   if (REFINE_OUTPUT) {
@@ -232,48 +236,50 @@
                   } else {
                       combo_right = 0;
                   }
-                  if (combo_left == 12) {
-                      $(function() {
-                        $.getJSON('/process_swipe_left',
-                            function(data) {
-                            // do nothing
-                        });
-                        return false;
-                      });
+                  if (combo_left == NUM_FRAMES_UNTIL_ACTION) {
+//                       $(function() {
+//                         $.getJSON('/process_swipe_left',
+//                             function(data) {
+//                             // do nothing
+//                         });
+//                         return false;
+//                       });
+                      $.post("/post_swipe_left", {swipe_data: "Swiped ID=..."},
+                          function(response) {
+                              var url = response;
+                              var img = new Image();
+                              img.src = url;
+                              img.addEventListener('load', function() {
+                                  var myImageElement = document.getElementById('img_to_update');
+                                  myImageElement.src = url;
+                              });
+                              console.log(response);
+                          }
+                     );
                   }
-                  if (combo_right == 12) {
-                      $(function() {
-                        $.getJSON('/process_swipe_right',
-                            function(data) {
-                            // do nothing
-                        });
-                        return false;
-                      });
+                  if (combo_right == NUM_FRAMES_UNTIL_ACTION) {
+                      $.post("/post_swipe_right", {swipe_data: "Swiped ID=..."},
+                          function(response) {
+                              var url = response;
+                              var img = new Image();
+                              img.src = url;
+                              img.addEventListener('load', function() {
+                                  var myImageElement = document.getElementById('img_to_update');
+                                  myImageElement.src = url;
+                                  myImageElement.width = 256;
+                                  myImageElement.height = 512;
+                              });
+                              console.log(response);
+                          }
+                     );
                   }
               }
               img.dispose();
               await tf.nextFrame();
               i_frame += 1;
-//              console.timeEnd('keras_tsm_graph.predict()');  // prints ~100-150 ms
+//              console.timeEnd('keras_tsm_graph.predict()');  // prints ~120-170 ms
           }
       }
       predict();
   </script>
-<!--   <script type=text/javascript>
-        $(function() {
-          $('a#test').bind('click', function() {
-            $.getJSON('/background_process_test',
-                function(data) {
-                // do nothing
-            });
-            return false;
-          });
-        });
-  </script>
-  <div class='container'>
-    <h3>Test</h3>
-      <form>
-        <a href=# id=test><button class='btn btn-default'>Test</button></a>
-      </form>
-  </div> -->
 </html>
