@@ -8,18 +8,17 @@
         margin-left: 50px;
     }
     </style>
-        <body>
-            <h1>TensorFlow.js: gesture recognition</h1>
-            <div class="webcam-box-outer">
-                <div class="webcam-box-inner">
-                    <video autoplay playsinline muted id="webcam" width="224" height="224"></video>
-                </div>
+    <body>
+        <h1>TensorFlow.js: gesture recognition</h1>
+        <div class="webcam-box-outer">
+            <div class="webcam-box-inner">
+                <video autoplay playsinline muted id="webcam" width="224" height="224"></video>
             </div>
-        </body>
-    <img id="img" src="https://icatcare.org/app/uploads/2018/06/Layer-1704-1920x840.jpg"></img>
+        </div>
+    </body>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0"> </script>
-    <script src="https://cdn.jsdelivr.net/npm/onnxjs/dist/onnx.min.js"></script>
+<!--     <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@1.0.0"> </script> -->
+<!--     <script src="https://cdn.jsdelivr.net/npm/onnxjs/dist/onnx.min.js"></script> -->
     <script>
         const MODEL_PATH = '../convert/models/keras_tsm_graph/model.json'
         const CATEGORIES = [
@@ -175,7 +174,7 @@
                         'i10': buffer[9],
                     }
                     const preds = keras_tsm_graph.predict(input_tensors);
-    //                 console.timeEnd('keras_tsm_graph.predict()');  // prints ~8-20 ms
+//                     console.timeEnd('keras_tsm_graph.predict()');  // prints ~8-20 ms
                     const start = async () => { await asyncForEach(preds, rewrite_buffer); }  // !!! takes 100ms...
                     await start(); 
                     if (REFINE_OUTPUT) {

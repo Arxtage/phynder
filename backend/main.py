@@ -5,8 +5,12 @@ import requests
 import vk_api
 import os
 
+from flask_wtf.csrf import CSRFProtect
 
+
+csrf = CSRFProtect()
 app = Flask(__name__)
+csrf.init_app(app)
 app.secret_key = os.urandom(24)
 
 VK_API_ID = 7534914
@@ -65,7 +69,24 @@ def swipes():
             'sex': row[6],
             'image': eval(row[8])['photo']['sizes'][-1]['url']
             }    
-    return render_template("home.html", person=person, user = user)
+    return render_template("home.html", person=person, user=user)
+
+# background process happening without any refreshing
+@app.route('/background_process_test')
+def background_process_test():
+    print("Hello")
+    return("nothing")
+
+@app.route('/process_swipe_left')
+def process_swipe_left():
+    print("Swiping Left")
+    return("nothing")
+
+@app.route('/process_swipe_right')
+def process_swipe_right():
+    print("Swiping Right")
+    return("nothing")
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
+    
