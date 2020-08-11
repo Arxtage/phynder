@@ -8,9 +8,12 @@ import pandas as pd
 import json
 #from flask_sqlalchemy import SQLAlchemy
 
+from flask_wtf.csrf import CSRFProtect
 
 
+csrf = CSRFProtect()
 app = Flask(__name__)
+csrf.init_app(app)
 app.secret_key = os.urandom(24)
 
 VK_API_ID = 7534914
@@ -55,27 +58,26 @@ def set_cookies():
 
     return res
 
+# def sample_partners(user_id):
+#     """СЕРВЕР"""
+#     """Pick 20 partners to send for swipes"""
 
-def sample_partners(user_id):
-    """СЕРВЕР"""
-    """Pick 20 partners to send for swipes"""
+#     users_data = pd.read_csv('/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend/ONE_IMG_vk_phystech.csv')
+#     swipe_data = pd.read_csv('/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend/swipe_data.csv')
+#     user_combinations = swipe_data[swipe_data["id"]==int(user_id)]
+#     sample = user_combinations[swipe_data['action'].isna()].sample(20)
 
-    users_data = pd.read_csv('/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend/ONE_IMG_vk_phystech.csv')
-    swipe_data = pd.read_csv('/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend/swipe_data.csv')
-    user_combinations = swipe_data[swipe_data["id"]==int(user_id)]
-    sample = user_combinations[swipe_data['action'].isna()].sample(20)
-
-    df2 = users_data.loc[users_data['id'].isin(sample.swiped)]
-    merged = pd.merge(sample, df2, left_on='swiped', right_on='id')
-    return(merged.to_json(orient='records'))
+#     df2 = users_data.loc[users_data['id'].isin(sample.swiped)]
+#     merged = pd.merge(sample, df2, left_on='swiped', right_on='id')
+#     return(merged.to_json(orient='records'))
 
 def sample_partners_v2(user_id):
     """СЕРВЕР"""
     """Pick 20 partners to send for swipes"""
 
-    boys = pd.read_csv('/Users/inarm/Desktop/PHYNDER.tmp/phynder/boys.csv')
-    girls = pd.read_csv('/Users/inarm/Desktop/PHYNDER.tmp/phynder/girls.csv')
-    swipe_data = pd.read_csv('/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend/swipe_data_v2.csv')
+    boys = pd.read_csv('./boys.csv')
+    girls = pd.read_csv('./girls.csv')
+    swipe_data = pd.read_csv('./swipe_data_v2.csv')
 
     if int(user_id) in boys.id.values:
         # проверка какие девочки уже находятся в id_swiped для user_id и семпл из тех, кого там нет
@@ -107,6 +109,22 @@ def swipes():
     session['partner_counter'] += 1
     print(session['partner_counter'])
     return render_template("home.html", person=person, user = user_info)
+
+@app.route('/post_swipe_left', methods = ['POST'])
+def post_swipe_left():
+#     jsdata1 = request.data
+#     jsdata2 = request.name
+    jsdata = request.form['swipe_data']
+    print(jsdata)
+    return('https://sun1-92.userapi.com/dnlKY5Ehvn6DBK69pIe9XARmfe0C68zjkggwBA/UJ5ZqW5sbbk.jpg')  # json.loads(jsdata)[0]
+
+@app.route('/post_swipe_right', methods = ['POST'])
+def post_swipe_right():
+#     jsdata1 = request.data
+#     jsdata2 = request.name
+    jsdata = request.form['swipe_data']
+    print(jsdata)
+    return('https://sun9-15.userapi.com/c830409/v830409625/90304/v_bkC18PLrc.jpg')  # json.loads(jsdata)[0]
 
 
 if __name__ == '__main__':
