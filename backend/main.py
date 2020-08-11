@@ -108,7 +108,30 @@ def swipes():
 
     session['partner_counter'] += 1
     print(session['partner_counter'])
-    return render_template("home.html", person=person, user = user_info)
+    return render_template("home.html", person=person, user=user_info)
+
+@app.route('/swipes_new', methods = ['POST'])
+def swipes_new():
+    """ЮЗЕР?"""
+    access_token = session['access_token']
+
+    user_id = session['user_id']
+    user_info = vk_api.get_user_data(access_token, user_id)[0] #убрать в серверную часть
+    
+    num = session['partner_counter']
+    list_of_dicts_of_partners = json.loads(session['sample'])
+    partner = list_of_dicts_of_partners[num]
+    person = {
+        'id': partner['id'],
+        'name': partner['first_name'],
+        'surname': partner['last_name'],
+        'sex': partner['sex'],
+        'image': partner['crop_photo']
+    }
+
+    session['partner_counter'] += 1
+    print(session['partner_counter'])
+    return person  # render_template("home.html", person=person, user=user_info)
 
 @app.route('/post_swipe_left', methods = ['POST'])
 def post_swipe_left():
