@@ -14,15 +14,14 @@
     </a>
   </div>
   <div class="person-card">
-    <img id="current_person" src={{person.image}} alt="person">
+    <img id="person_image" src={{person.image}} alt="person">
     <div class="text">
-      <h4><b>{{person.name}}</b></h4>
-      <p class="marker"> <i class="fa fa-imdb" aria-hidden="true"></i>{{person.name}}</p>
-        <p class="marker"><i class="fa fa-calendar" aria-hidden="true"></i>{{person.surname}}</p>
-      <p class="marker"> <i class="fa fa-film" aria-hidden="true"></i>{{person.sex}}</p>
-     
+      <h4><b id="person_name_large">{{person.name}}</b></h4>
+      <p class="marker" id="person_name"><i class="fa fa-imdb" aria-hidden="true"></i>{{person.name}}</p>
+      <p class="marker" id="person_surname"><i class="fa fa-calendar" aria-hidden="true"></i>{{person.surname}}</p>
+      <p class="marker" id="person_sex"><i class="fa fa-film" aria-hidden="true"></i>{{person.sex}}</p>
       <hr>
-      <p>{{person.description}}</p>
+      <p id="person_description">{{person.description}}</p>
     </div>
   </div>
   <div>
@@ -35,7 +34,7 @@
 </div>
 <div class="container">
   <div>
-    <button class="button watch" onclick="window.open('https://vk.com/id{{person.id}}', '_blank')"target='0'>
+    <button id="person_vk_button" class="button watch" onclick="window.open('https://vk.com/id{{person.id}}', '_blank')" target='0'>
       Open the page in VK!
       <i class="fa fa-star"></i>
     </button>
@@ -189,6 +188,29 @@
             }
         }
         
+        function handle_response(response) {
+            current_person_id = response["id"];
+            console.log(current_person_id);
+            var url = response["image"];
+            var img = new Image();
+            img.src = url;
+            img.addEventListener('load', function() {
+                var my_image_element = document.getElementById('person_image');
+                my_image_element.src = url;
+            });
+            $('#person_name_large').text(response["name"]);
+            $('#person_name').text(response["name"]);
+            $('#person_surname').text(response["surname"]);
+            $('#person_sex').text(response["sex"]);
+            $('#person_description').text(response["name"]);  // !!!
+            var person_vk_button = document.getElementById('person_vk_button');
+            person_vk_button.setAttribute("onclick", `window.open('https://vk.com/id${current_person_id}', '_blank')`);
+//             $('#person_vk_button').onclick(`window.open('https://vk.com/id${current_person_id}', '_blank')`);
+//             $("person_vk_button").attr({
+//               onclick: `window.open('https://vk.com/id${current_person_id}', '_blank')`
+//             });
+        }
+        
         // Runtime loop
         const predicting = true;
         var i_frame = 0;
@@ -215,15 +237,15 @@
                 }
                 const preds = keras_tsm_graph.predict(input_tensors);
 //                   console.timeEnd('keras_tsm_graph.predict()');  // prints ~8-20 ms
-                console.time('start()');
+//                 console.time('start()');  # !!!
                 const start = async () => { await asyncForEach(preds, rewrite_buffer); }  // !!! takes 100-150ms...
                 await start(); 
-                console.timeEnd('start()');
+//                 console.timeEnd('start()');  # !!!
                 if (REFINE_OUTPUT) {
                     history = await process_output(jest_id, history);
                     jest_id = history.slice(-1)[0];
                 }
-                console.log(CATEGORIES[jest_id]);
+//                 console.log(CATEGORIES[jest_id]);  # !!!
                 if (CATEGORIES[jest_id] == "Swiping Left") {
                     combo_left += 1;
                 } else {
@@ -235,40 +257,17 @@
                     combo_right = 0;
                 }
                 if (combo_left == NUM_FRAMES_UNTIL_ACTION) {
-//                        $(function() {
-//                          $.getJSON('/process_swipe_left',
-//                              function(data) {
-//                              // do nothing
-//                          });
-//                          return false;
-//                        });
-                    $.post("/swipes_new", {swipe_type: "left", swipe_id: current_person_id},
-                        function(response) {
-                            current_person_id = response["id"];
-                            var url = response["image"];
-                            var img = new Image();
-                            img.src = url;
-                            img.addEventListener('load', function() {
-                                var myImageElement = document.getElementById('current_person');
-                                myImageElement.src = url;
-                            });
-                            console.log(current_person_id);
-                        }
+                    $.post(
+                        "/swipes_new", 
+                        {swipe_type: "left", swipe_id: current_person_id}, 
+                        handle_response
                    );
                 }
                 if (combo_right == NUM_FRAMES_UNTIL_ACTION) {
-                    $.post("/swipes_new", {swipe_type: "right", swipe_id: current_person_id},
-                        function(response) {
-                            current_person_id = response["id"];
-                            var url = response["image"];
-                            var img = new Image();
-                            img.src = url;
-                            img.addEventListener('load', function() {
-                                var myImageElement = document.getElementById('current_person');
-                                myImageElement.src = url;
-                            });
-                            console.log(current_person_id);
-                        }
+                    $.post(
+                        "/swipes_new", 
+                        {swipe_type: "right", swipe_id: current_person_id},
+                        handle_response
                    );
                 }
             }
