@@ -1,14 +1,13 @@
-<html>
+{% extends "template.html" %}
+{% block content %}
 
-<head>
-  <title>VK auth</title>
-</head>
 
-<body>
-  <h1>Press button to authorize using VK</h1>
+<div style="text-align: center;">
+  <h1>VK Authorization</h1>
   <button type="button" onclick="window.location.href='{{ bttnredirect }}';">
     VK Authorization
   </button>
-</body>
+</div>
 
-</html>
+
+{% endblock %}
