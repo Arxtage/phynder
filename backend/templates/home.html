@@ -52,18 +52,19 @@
         }
     })
     // Main logic
-    const MODEL_URL = "{{ url_for('static', filename='models/model.json') }}"
+    const MODEL_URL = "{{ url_for('static', filename='model1/model.json') }}"
+    const MODEL_URL_NOID = "{{ url_for('static', filename='model2/model.json') }}"
     const CATEGORIES = [
         "Doing other things",  // 0
         "Drumming Fingers",    // 1
         "No gesture",          // 2
         "Pulling Hand In",     // 3
-        "Pulling Two Fingers In",    // 4
-        "Pushing Hand Away",         // 5
-        "Pushing Two Fingers Away",  // 6
-        "Rolling Hand Backward",  // 7
-        "Rolling Hand Forward",   // 8
-        "Shaking Hand",           // 9
+        "Pulling Two Fingers In",     // 4
+        "Pushing Hand Away",          // 5
+        "Pushing Two Fingers Away",   // 6
+        "Rolling Hand Backward",      // 7
+        "Rolling Hand Forward",       // 8
+        "Shaking Hand",               // 9
         "Sliding Two Fingers Down",   // 10
         "Sliding Two Fingers Left",   // 11
         "Sliding Two Fingers Right",  // 12
@@ -72,9 +73,9 @@
         "Swiping Down",   // 15
         "Swiping Left",   // 16
         "Swiping Right",  // 17
-        "Swiping Up",  // 18
-        "Thumb Down",  // 19
-        "Thumb Up",    // 20
+        "Swiping Up",     // 18
+        "Thumb Down",     // 19
+        "Thumb Up",       // 20
         "Turning Hand Clockwise",         // 21
         "Turning Hand Counterclockwise",  // 22
         "Zooming In With Full Hand",      // 23
@@ -150,6 +151,7 @@
             document.getElementById('no-webcam').style.display = 'block';
         }
         const keras_tsm_graph = await tf.loadGraphModel(MODEL_URL);
+        const keras_tsm_noid_graph = await tf.loadGraphModel(MODEL_URL_NOID);
         buffer = {
             0: tf.ones([1, 3, 55, 55]).transpose([0, 2, 3, 1]),
             1: tf.ones([1, 4, 27, 27]).transpose([0, 2, 3, 1]),
@@ -188,6 +190,26 @@
             }
         }
         
+        async function print_match(item) {
+            if (item.shape.length == 2) {
+                console.log('jesture tensor');  // debug
+            } else if (item.shape.length == 4) {
+                const bufArray = Object.values(buffer);
+                console.log('buffer tensor');
+                for (var key in buffer) {
+                    if (buffer.hasOwnProperty(key)) {
+                        if (JSON.stringify(item.shape) == JSON.stringify(buffer[key].shape)) {
+                            const c = await buffer[key].equal(item).sum().dataSync()[0];
+//                             console.log(c);
+                            if (c === item.shape.reduce((a, b) => a *= b)) {
+                                console.log(key);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         function handle_response(response) {
             current_person_id = response["id"];
             console.log(current_person_id);
@@ -205,10 +227,6 @@
             $('#person_description').text(response["name"]);  // !!!
             var person_vk_button = document.getElementById('person_vk_button');
             person_vk_button.setAttribute("onclick", `window.open('https://vk.com/id${current_person_id}', '_blank')`);
-//             $('#person_vk_button').onclick(`window.open('https://vk.com/id${current_person_id}', '_blank')`);
-//             $("person_vk_button").attr({
-//               onclick: `window.open('https://vk.com/id${current_person_id}', '_blank')`
-//             });
         }
         
         // Runtime loop
@@ -219,7 +237,7 @@
         const NUM_FRAMES_UNTIL_ACTION = 4;
         var current_person_id = "4599928";
         while (predicting) {
-//               console.time('keras_tsm_graph.predict()');
+//             console.time('keras_tsm_graph.predict()');
             const img = await getProcessedFrame(channels_format='channels_last');
             if (i_frame % 2 == 0) {  // skip every other frame to obtain a suitable frame rate
                 const input_tensors = {
@@ -235,12 +253,32 @@
                     'i9': buffer[8],
                     'i10': buffer[9],
                 }
-                const preds = keras_tsm_graph.predict(input_tensors);
-//                   console.timeEnd('keras_tsm_graph.predict()');  // prints ~8-20 ms
-//                 console.time('start()');  # !!!
-                const start = async () => { await asyncForEach(preds, rewrite_buffer); }  // !!! takes 100-150ms...
-                await start(); 
-//                 console.timeEnd('start()');  # !!!
+//                 const preds = keras_tsm_graph.predict(input_tensors);
+                const preds_noid = keras_tsm_noid_graph.predict(input_tensors);
+                // 4,3,5,7,9,2,0,6,8,j,1
+                buffer[4] = preds_noid[0];
+                buffer[3] = preds_noid[1];
+                buffer[5] = preds_noid[2];
+                buffer[7] = preds_noid[3];
+                buffer[9] = preds_noid[4];
+                buffer[2] = preds_noid[5];
+                buffer[0] = preds_noid[6];
+                buffer[6] = preds_noid[7];
+                buffer[8] = preds_noid[8];
+                buffer[1] = preds_noid[10];
+                jest_id = await preds_noid[9].argMax(axis=1).array();
+                if (HISTORY_LOGIT) {
+                    history_logit.push(preds_noid[9]);
+                    history_logit = history_logit.slice(-12);
+                    avg_logit = history_logit.reduce(function(a, b){
+                        return a.add(b);
+                    });
+                    jest_id = await avg_logit.argMax(axis=1).array();
+                }
+//                 const start = async () => { await asyncForEach(preds, rewrite_buffer); }  // !!! takes 100-150ms...
+//                 await start();
+//                 const start2 = async () => { await asyncForEach(preds_noid, print_match); }
+//                 await start2();
                 if (REFINE_OUTPUT) {
                     history = await process_output(jest_id, history);
                     jest_id = history.slice(-1)[0];
