@@ -51,8 +51,8 @@
             }
         }
     })
+    
     // Main logic
-    const MODEL_URL = "{{ url_for('static', filename='model1/model.json') }}"
     const MODEL_URL_NOID = "{{ url_for('static', filename='model2/model.json') }}"
     const CATEGORIES = [
         "Doing other things",  // 0
@@ -106,20 +106,6 @@
         }
     }
     
-    async function asyncForEach(array, callback) {
-        for (let index = 0; index < array.length; index++) {
-            await callback(array[index], index, array);
-        }
-    }
-    
-    function print_order_id(item) {
-      if (item.length == 1) {
-          console.log(0);
-      } else {
-           item[1].array().then(array => console.log(array[0][0][0][0]));
-      }
-    }
-    
     async function process_output(idx_, history) {
         // idx_: the output of current frame
         // history: a list containing the history of predictions
@@ -150,7 +136,6 @@
             console.log(e);
             document.getElementById('no-webcam').style.display = 'block';
         }
-        const keras_tsm_graph = await tf.loadGraphModel(MODEL_URL);
         const keras_tsm_noid_graph = await tf.loadGraphModel(MODEL_URL_NOID);
         buffer = {
             0: tf.ones([1, 3, 55, 55]).transpose([0, 2, 3, 1]),
@@ -167,48 +152,6 @@
         var jest_id = 2;
         var history = [2, 2];
         var history_logit = [];
-        
-        async function rewrite_buffer(item) {
-            if (item.shape.length == 2) {
-//                    console.time('rewrite_buffer()');
-                jest_id = await item.argMax(axis=1).array();
-                if (HISTORY_LOGIT) {
-                    history_logit.push(item);
-                    history_logit = history_logit.slice(-12);
-                    avg_logit = history_logit.reduce(function(a, b){
-                        return a.add(b);
-                    });
-                    jest_id = await avg_logit.argMax(axis=1).array();
-                }
-//                    console.log('jesture tensor');  // debug
-//                    console.timeEnd('rewrite_buffer()');
-            } else if (item.shape.length == 4) {
-                const [buf, order_id] = tf.split(item, [item.shape[3]-1, 1], 3);
-                const order_id_value = await order_id.array();
-//                   console.log(order_id_value[0][0][0][0]);  // debug
-                buffer[order_id_value[0][0][0][0]-1] = buf;
-            }
-        }
-        
-        async function print_match(item) {
-            if (item.shape.length == 2) {
-                console.log('jesture tensor');  // debug
-            } else if (item.shape.length == 4) {
-                const bufArray = Object.values(buffer);
-                console.log('buffer tensor');
-                for (var key in buffer) {
-                    if (buffer.hasOwnProperty(key)) {
-                        if (JSON.stringify(item.shape) == JSON.stringify(buffer[key].shape)) {
-                            const c = await buffer[key].equal(item).sum().dataSync()[0];
-//                             console.log(c);
-                            if (c === item.shape.reduce((a, b) => a *= b)) {
-                                console.log(key);
-                            }
-                        }
-                    }
-                }
-            }
-        }
         
         function handle_response(response) {
             current_person_id = response["id"];
@@ -235,11 +178,11 @@
         var combo_left = 0;
         var combo_right = 0;
         const NUM_FRAMES_UNTIL_ACTION = 4;
-        var current_person_id = "4599928";
+        var current_person_id = "4599928";  // !!!
         while (predicting) {
-//             console.time('keras_tsm_graph.predict()');
+//             console.time('model.predict()');
             const img = await getProcessedFrame(channels_format='channels_last');
-            if (i_frame % 2 == 0) {  // skip every other frame to obtain a suitable frame rate
+            if (i_frame % 2 == 0) {
                 const input_tensors = {
                     'i0': img,
                     'i1': buffer[0],
@@ -253,37 +196,30 @@
                     'i9': buffer[8],
                     'i10': buffer[9],
                 }
-//                 const preds = keras_tsm_graph.predict(input_tensors);
-                const preds_noid = keras_tsm_noid_graph.predict(input_tensors);
+                const preds = keras_tsm_noid_graph.predict(input_tensors);
                 // 4,3,5,7,9,2,0,6,8,j,1
-                buffer[4] = preds_noid[0];
-                buffer[3] = preds_noid[1];
-                buffer[5] = preds_noid[2];
-                buffer[7] = preds_noid[3];
-                buffer[9] = preds_noid[4];
-                buffer[2] = preds_noid[5];
-                buffer[0] = preds_noid[6];
-                buffer[6] = preds_noid[7];
-                buffer[8] = preds_noid[8];
-                buffer[1] = preds_noid[10];
-                jest_id = await preds_noid[9].argMax(axis=1).array();
+                buffer[4] = preds[0];
+                buffer[3] = preds[1];
+                buffer[5] = preds[2];
+                buffer[7] = preds[3];
+                buffer[9] = preds[4];
+                buffer[2] = preds[5];
+                buffer[0] = preds[6];
+                buffer[6] = preds[7];
+                buffer[8] = preds[8];
+                buffer[1] = preds[10];
+                jest_id = await preds[9].argMax(axis=1).array();
                 if (HISTORY_LOGIT) {
-                    history_logit.push(preds_noid[9]);
+                    history_logit.push(preds[9]);
                     history_logit = history_logit.slice(-12);
-                    avg_logit = history_logit.reduce(function(a, b){
-                        return a.add(b);
-                    });
+                    avg_logit = history_logit.reduce(function(a, b){ return a.add(b); });
                     jest_id = await avg_logit.argMax(axis=1).array();
                 }
-//                 const start = async () => { await asyncForEach(preds, rewrite_buffer); }  // !!! takes 100-150ms...
-//                 await start();
-//                 const start2 = async () => { await asyncForEach(preds_noid, print_match); }
-//                 await start2();
                 if (REFINE_OUTPUT) {
                     history = await process_output(jest_id, history);
                     jest_id = history.slice(-1)[0];
                 }
-//                 console.log(CATEGORIES[jest_id]);  # !!!
+//                 console.log(CATEGORIES[jest_id]);
                 if (CATEGORIES[jest_id] == "Swiping Left") {
                     combo_left += 1;
                 } else {
@@ -312,7 +248,7 @@
             img.dispose();
             await tf.nextFrame();
             i_frame += 1;
-//             console.timeEnd('keras_tsm_graph.predict()');  // prints ~120-170 ms
+//             console.timeEnd('model.predict()');  // prints ~50-60 ms
         }
     }
     predict();
