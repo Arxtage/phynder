@@ -94,6 +94,12 @@ def sample_partners_v2(user_id):
 @app.route('/swipes')
 def swipes():
     """ЮЗЕР?"""
+
+    # check if logged, if not -> redirect to /login
+    if 'access_token' not in session:
+        url = '/login'
+        return render_template("index.html", bttnredirect=url)
+    
     access_token = session['access_token']
 
     user_id = session['user_id']
@@ -119,6 +125,12 @@ def swipes():
 @app.route('/swipes_new', methods = ['POST'])
 def swipes_new():
     """ЮЗЕР?"""
+    
+    # check if logged, if not -> redirect to /login
+    if 'access_token' not in session:
+        url = '/login'
+        return render_template("index.html", bttnredirect=url)
+
     access_token = session['access_token']
 
     user_id = session['user_id']
