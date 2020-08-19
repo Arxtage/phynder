@@ -17,6 +17,10 @@ csrf.init_app(app)
 app.secret_key = os.urandom(24)
 
 VK_API_ID = 7534914
+DB_ROOT_DIR = '/Users/izakharkin/Desktop/skoltech/vrarhaptics/deepjest/phynder/backend/'
+PATH_BOYS_CSV = f'{DB_ROOT_DIR}/boys.csv'
+PATH_GIRLS_CSV = f'{DB_ROOT_DIR}/girls.csv'
+PATH_SWIPE_DATA_V2 = f'{DB_ROOT_DIR}/swipe_data_v2.csv'
 
 
 @app.route("/")
@@ -75,9 +79,9 @@ def sample_partners_v2(user_id):
     """СЕРВЕР"""
     """Pick 20 partners to send for swipes"""
 
-    boys = pd.read_csv('./boys.csv')
-    girls = pd.read_csv('./girls.csv')
-    swipe_data = pd.read_csv('./swipe_data_v2.csv')
+    boys = pd.read_csv(PATH_BOYS_CSV)
+    girls = pd.read_csv(PATH_GIRLS_CSV)
+    swipe_data = pd.read_csv(PATH_SWIPE_DATA_V2)
 
     if int(user_id) in boys.id.values:
         # проверка какие девочки уже находятся в id_swiped для user_id и семпл из тех, кого там нет
@@ -93,7 +97,7 @@ def swipes():
     access_token = session['access_token']
 
     user_id = session['user_id']
-    user_info = vk_api.get_user_data(access_token, user_id)[0] #убрать в серверную часть
+    user_info = vk_api.get_user_data(access_token, user_id)[0]  # убрать в серверную часть
     
     #num = session['partner_counter']
     session['sample'], swipe_data = sample_partners_v2(user_id)
@@ -115,12 +119,10 @@ def swipes():
 @app.route('/swipes_new', methods = ['POST'])
 def swipes_new():
     """ЮЗЕР?"""
-
-
     access_token = session['access_token']
 
     user_id = session['user_id']
-    user_info = vk_api.get_user_data(access_token, user_id)[0] #убрать в серверную часть
+    user_info = vk_api.get_user_data(access_token, user_id)[0]  # убрать в серверную часть
 
     session['sample'], swipe_data = sample_partners_v2(user_id)
 
@@ -128,7 +130,7 @@ def swipes_new():
     swipe_id = request.form['swipe_id']
 
     swipe_data = swipe_data.append({'id':int(user_id), 'id_swiped':int(swipe_id), 'action':swipe_type}, ignore_index=True)
-    swipe_data.to_csv('./swipe_data_v2.csv', index=False)
+    swipe_data.to_csv(PATH_SWIPE_DATA_V2, index=False)
 
     list_of_dicts_of_partners = json.loads(session['sample'])
     partner = list_of_dicts_of_partners[0]
@@ -143,21 +145,17 @@ def swipes_new():
 
     return person  # render_template("home.html", person=person, user=user_info)
 
-@app.route('/post_swipe_left', methods = ['POST'])
-def post_swipe_left():
-#     jsdata1 = request.data
-#     jsdata2 = request.name
-    jsdata = request.form['swipe_data']
-    print(jsdata)
-    return('https://sun1-92.userapi.com/dnlKY5Ehvn6DBK69pIe9XARmfe0C68zjkggwBA/UJ5ZqW5sbbk.jpg')  # json.loads(jsdata)[0]
+# @app.route('/post_swipe_left', methods = ['POST'])
+# def post_swipe_left():
+#     jsdata = request.form['swipe_data']
+#     print(jsdata)
+#     return('https://sun1-92.userapi.com/dnlKY5Ehvn6DBK69pIe9XARmfe0C68zjkggwBA/UJ5ZqW5sbbk.jpg')
 
-@app.route('/post_swipe_right', methods = ['POST'])
-def post_swipe_right():
-#     jsdata1 = request.data
-#     jsdata2 = request.name
-    jsdata = request.form['swipe_data']
-    print(jsdata)
-    return('https://sun9-15.userapi.com/c830409/v830409625/90304/v_bkC18PLrc.jpg')  # json.loads(jsdata)[0]
+# @app.route('/post_swipe_right', methods = ['POST'])
+# def post_swipe_right():
+#     jsdata = request.form['swipe_data']
+#     print(jsdata)
+#     return('https://sun9-15.userapi.com/c830409/v830409625/90304/v_bkC18PLrc.jpg')
 
 
 if __name__ == '__main__':
