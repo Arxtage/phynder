@@ -6,13 +6,6 @@
 <meta name="csrf-token" content="{{ csrf_token() }}">
   
 <div class="container master">
-  <div>
-    <a href="{{ url_for('home') }}">
-      <button class="button downvote">
-          <i class="fa fa-times fa-3x"></i>
-      </button>
-    </a>
-  </div>
   <div class="person-card">
     <img id="person_image" src={{person.image}} alt="person">
     <div class="text">
@@ -23,13 +16,6 @@
       <hr>
       <p id="person_description">{{person.description}}</p>
     </div>
-  </div>
-  <div>
-    <a href="{{ url_for('home') }}">
-      <button class="button heart">
-        <i class="fa fa-heart fa-2x"></i>
-      </button>
-    </a>
   </div>
 </div>
 <div class="container">
@@ -87,7 +73,7 @@
     const HISTORY_LOGIT = true;
     const REFINE_OUTPUT = true;
     
-    async function getProcessedFrame(channels_format) {
+    async function getProcessedFrame(webcam, channels_format) {
         /**
          * Captures a frame from the webcam and normalizes it between -1 and 1.
          * Returns a batched image (1-element batch) of shape [1, w, h, c].
@@ -131,31 +117,44 @@
     
     async function predict() {
         try {
-            webcam = await tf.data.webcam(document.getElementById('webcam'));
+            const videoElement = document.createElement('video');
+            videoElement.width = 224;
+            videoElement.height = 224;
+            webcam = await tf.data.webcam(videoElement);
+    //             cam.stop();
+    //             const webcam = await tf.data.webcam(document.getElementById('webcam'));
         } catch (e) {
             console.log(e);
             document.getElementById('no-webcam').style.display = 'block';
         }
         const keras_tsm_noid_graph = await tf.loadGraphModel(MODEL_URL_NOID);
-        buffer = {
-            0: tf.ones([1, 3, 55, 55]).transpose([0, 2, 3, 1]),
-            1: tf.ones([1, 4, 27, 27]).transpose([0, 2, 3, 1]),
-            2: tf.ones([1, 4, 27, 27]).transpose([0, 2, 3, 1]),
-            3: tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
-            4: tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
-            5: tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
-            6: tf.ones([1, 12, 13, 13]).transpose([0, 2, 3, 1]),
-            7: tf.ones([1, 12, 13, 13]).transpose([0, 2, 3, 1]),
-            8: tf.ones([1, 20, 6, 6]).transpose([0, 2, 3, 1]),
-            9: tf.ones([1, 20, 6, 6]).transpose([0, 2, 3, 1])
+        var input_tensors = {
+            'i0': tf.ones([1, 3, 224, 224]).transpose([0, 2, 3, 1]),
+            'i1': tf.ones([1, 3, 55, 55]).transpose([0, 2, 3, 1]),
+            'i2': tf.ones([1, 4, 27, 27]).transpose([0, 2, 3, 1]),
+            'i3': tf.ones([1, 4, 27, 27]).transpose([0, 2, 3, 1]),
+            'i4': tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
+            'i5': tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
+            'i6': tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
+            'i7': tf.ones([1, 12, 13, 13]).transpose([0, 2, 3, 1]),
+            'i8': tf.ones([1, 12, 13, 13]).transpose([0, 2, 3, 1]),
+            'i9': tf.ones([1, 20, 6, 6]).transpose([0, 2, 3, 1]),
+            'i10': tf.ones([1, 20, 6, 6]).transpose([0, 2, 3, 1])
         }  // SPATIAL SHAPES WERE DECREASED BY 1 !!!
         var jest_id = 2;
         var history = [2, 2];
-        var history_logit = [];
+        function InitLogitHistory(size) {
+            var x = [];
+            for (var i = 0; i < size; ++i) {
+                x.push(tf.ones([1, 27]));
+            }
+            return x;
+        }
+        var history_logit = InitLogitHistory(12);
+        var hist_cyclic_idx = 0;
         
         function handle_response(response) {
             current_person_id = response["id"];
-            console.log(current_person_id);
             var url = response["image"];
             var img = new Image();
             img.src = url;
@@ -173,48 +172,41 @@
         }
         
         // Runtime loop
-        const predicting = true;
-        var i_frame = 0;
+        const NUM_FRAMES_UNTIL_ACTION = 4;
         var combo_left = 0;
         var combo_right = 0;
-        const NUM_FRAMES_UNTIL_ACTION = 4;
         var current_person_id = "4599928";  // !!!
-        while (predicting) {
+        const predicting = true;
+        var i_frame = 0;
+        while (i_frame < 3000) {
 //             console.time('model.predict()');
-            const img = await getProcessedFrame(channels_format='channels_last');
+            tf.engine().startScope();
+            tf.disposeVariables();
+            var img = await getProcessedFrame(webcam=webcam, channels_format='channels_last');
             if (i_frame % 2 == 0) {
-                const input_tensors = {
-                    'i0': img,
-                    'i1': buffer[0],
-                    'i2': buffer[1],
-                    'i3': buffer[2],
-                    'i4': buffer[3],
-                    'i5': buffer[4],
-                    'i6': buffer[5],
-                    'i7': buffer[6],
-                    'i8': buffer[7],
-                    'i9': buffer[8],
-                    'i10': buffer[9],
-                }
-                const preds = keras_tsm_noid_graph.predict(input_tensors);
-                // 4,3,5,7,9,2,0,6,8,j,1
-                buffer[4] = preds[0];
-                buffer[3] = preds[1];
-                buffer[5] = preds[2];
-                buffer[7] = preds[3];
-                buffer[9] = preds[4];
-                buffer[2] = preds[5];
-                buffer[0] = preds[6];
-                buffer[6] = preds[7];
-                buffer[8] = preds[8];
-                buffer[1] = preds[10];
-                jest_id = await preds[9].argMax(axis=1).array();
+                _ = tf.tidy(() => {
+                    input_tensors['i0'] = img;
+                    preds = keras_tsm_noid_graph.predict(input_tensors);
+                    tf.dispose(input_tensors);
+                    // 4,3,5,7,9,2,0,6,8,j,1
+                    input_tensors['i5'] = tf.keep(preds[0]);
+                    input_tensors['i4'] = tf.keep(preds[1]);
+                    input_tensors['i6'] = tf.keep(preds[2]);
+                    input_tensors['i8'] = tf.keep(preds[3]);
+                    input_tensors['i10'] = tf.keep(preds[4]);
+                    input_tensors['i3'] = tf.keep(preds[5]);
+                    input_tensors['i1'] = tf.keep(preds[6]);
+                    input_tensors['i7'] = tf.keep(preds[7]);
+                    input_tensors['i9'] = tf.keep(preds[8]);
+                    input_tensors['i2'] = tf.keep(preds[10]);
+                    history_logit[hist_cyclic_idx] = tf.keep(preds[9]);
+                    hist_cyclic_idx = (hist_cyclic_idx + 1) % history_logit.length;
+                });
                 if (HISTORY_LOGIT) {
-                    history_logit.push(preds[9]);
-                    history_logit = history_logit.slice(-12);
                     avg_logit = history_logit.reduce(function(a, b){ return a.add(b); });
                     jest_id = await avg_logit.argMax(axis=1).array();
                 }
+                tf.disposeVariables();
                 if (REFINE_OUTPUT) {
                     history = await process_output(jest_id, history);
                     jest_id = history.slice(-1)[0];
@@ -231,6 +223,7 @@
                     combo_right = 0;
                 }
                 if (combo_left == NUM_FRAMES_UNTIL_ACTION) {
+                    console.log(`left ${current_person_id}`);
                     $.post(
                         "/swipes_new", 
                         {swipe_type: "left", swipe_id: current_person_id}, 
@@ -238,6 +231,7 @@
                    );
                 }
                 if (combo_right == NUM_FRAMES_UNTIL_ACTION) {
+                    console.log(`right ${current_person_id}`);
                     $.post(
                         "/swipes_new", 
                         {swipe_type: "right", swipe_id: current_person_id},
@@ -245,11 +239,13 @@
                    );
                 }
             }
-            img.dispose();
+            img.dispose()
             await tf.nextFrame();
             i_frame += 1;
+            tf.engine().endScope();
 //             console.timeEnd('model.predict()');  // prints ~50-60 ms
         }
+        console.log(tf.memory());
     }
     predict();
 </script>
