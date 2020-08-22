@@ -224,35 +224,35 @@
                 }
                 if (combo_left == NUM_FRAMES_UNTIL_ACTION) {
                     console.log(`left ${current_person_id}`);
-//                     $.post(
-//                         "/swipes_new", 
-//                         {swipe_type: "left", swipe_id: current_person_id}, 
-//                         handle_response
-//                     );
-                    $.ajax({
-                        type: "POST",
-                        url: "/swipes_new",
-                        data: JSON.stringify({swipe_type: "left", swipe_id: current_person_id}),
-                        success: handle_response,
-                        dataType: "application/json",
-                        contentType: "application/json; charset=utf-8",
-                    });
+                    $.post(
+                        "/swipes_new", 
+                        {swipe_type: "left", swipe_id: current_person_id}, 
+                        handle_response
+                    );
+//                     $.ajax({
+//                         type: "POST",
+//                         url: "/swipes_new",
+//                         data: JSON.stringify({swipe_type: "left", swipe_id: current_person_id}),
+//                         success: handle_response,
+//                         dataType: "application/json",
+//                         contentType: "application/json; charset=utf-8",
+//                     });
                 }
                 if (combo_right == NUM_FRAMES_UNTIL_ACTION) {
                     console.log(`right ${current_person_id}`);
-//                     $.post(
-//                         "/swipes_new", 
-//                         {swipe_type: "right", swipe_id: current_person_id},
-//                         handle_response
-//                     );
-                    $.ajax({
-                        type: "POST",
-                        url: "/swipes_new",
-                        data: JSON.stringify({swipe_type: "right", swipe_id: current_person_id}),
-                        success: handle_response,
-                        dataType: "application/json",
-                        contentType: "application/json; charset=utf-8",
-                    });
+                    $.post(
+                        "/swipes_new", 
+                        {swipe_type: "right", swipe_id: current_person_id},
+                        handle_response
+                    );
+//                     $.ajax({
+//                         type: "POST",
+//                         url: "/swipes_new",
+//                         data: JSON.stringify({swipe_type: "right", swipe_id: current_person_id}),
+//                         success: handle_response,
+//                         dataType: "application/json",
+//                         contentType: "application/json; charset=utf-8",
+//                     });
                 }
             }
             img.dispose()
