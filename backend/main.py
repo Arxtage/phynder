@@ -138,7 +138,7 @@ def swipes_new():
     user_info = vk_api.get_user_data(access_token, user_id)[0]  # убрать в серверную часть
 
     session['sample'], swipe_data = sample_partners_v2(user_id)
-
+    
     swipe_type = request.form['swipe_type']
     swipe_id = request.form['swipe_id']
 
