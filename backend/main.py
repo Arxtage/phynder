@@ -17,8 +17,8 @@ csrf.init_app(app)
 app.secret_key = os.urandom(24)
 
 VK_API_ID = 7534914
-# DB_ROOT_DIR = '/Users/izakharkin/Desktop/skoltech/vrarhaptics/deepjest/phynder/backend/'
-DB_ROOT_DIR = '/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend'
+DB_ROOT_DIR = '/Users/izakharkin/Desktop/skoltech/vrarhaptics/deepjest/phynder/backend/'
+# DB_ROOT_DIR = '/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend'
 PATH_BOYS_CSV = f'{DB_ROOT_DIR}/boys.csv'
 PATH_GIRLS_CSV = f'{DB_ROOT_DIR}/girls.csv'
 PATH_SWIPE_DATA_V2 = f'{DB_ROOT_DIR}/swipe_data_v2.csv'
@@ -157,18 +157,6 @@ def swipes_new():
     }
 
     return person  # render_template("home.html", person=person, user=user_info)
-
-# @app.route('/post_swipe_left', methods = ['POST'])
-# def post_swipe_left():
-#     jsdata = request.form['swipe_data']
-#     print(jsdata)
-#     return('https://sun1-92.userapi.com/dnlKY5Ehvn6DBK69pIe9XARmfe0C68zjkggwBA/UJ5ZqW5sbbk.jpg')
-
-# @app.route('/post_swipe_right', methods = ['POST'])
-# def post_swipe_right():
-#     jsdata = request.form['swipe_data']
-#     print(jsdata)
-#     return('https://sun9-15.userapi.com/c830409/v830409625/90304/v_bkC18PLrc.jpg')
 
 
 if __name__ == '__main__':
