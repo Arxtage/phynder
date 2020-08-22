@@ -17,7 +17,8 @@ csrf.init_app(app)
 app.secret_key = os.urandom(24)
 
 VK_API_ID = 7534914
-DB_ROOT_DIR = '/Users/izakharkin/Desktop/skoltech/vrarhaptics/deepjest/phynder/backend/'
+# DB_ROOT_DIR = '/Users/izakharkin/Desktop/skoltech/vrarhaptics/deepjest/phynder/backend/'
+DB_ROOT_DIR = '/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend'
 PATH_BOYS_CSV = f'{DB_ROOT_DIR}/boys.csv'
 PATH_GIRLS_CSV = f'{DB_ROOT_DIR}/girls.csv'
 PATH_SWIPE_DATA_V2 = f'{DB_ROOT_DIR}/swipe_data_v2.csv'
@@ -85,9 +86,9 @@ def sample_partners_v2(user_id):
 
     if int(user_id) in boys.id.values:
         # проверка какие девочки уже находятся в id_swiped для user_id и семпл из тех, кого там нет
-        sample = girls[~girls.id.isin(swipe_data[swipe_data.id == int(user_id)].id_swiped)].sample(20)
+        sample = girls[~girls.id.isin(swipe_data[swipe_data.id == int(user_id)].id_swiped)].sample(1)
     elif int(user_id) in girls.id.values:
-        sample = boys[~boys.id.isin(swipe_data[swipe_data.id == int(user_id)].id_swiped)]#.sample(20)
+        sample = boys[~boys.id.isin(swipe_data[swipe_data.id == int(user_id)].id_swiped)].sample(1)
 
     return(sample.to_json(orient='records'), swipe_data)
 
