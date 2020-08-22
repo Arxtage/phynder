@@ -1,7 +1,7 @@
 {% extends "template2.html" %}
 {% block content %}
 
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
 <meta name="csrf-token" content="{{ csrf_token() }}">
   
@@ -178,7 +178,7 @@
         var current_person_id = "4599928";  // !!!
         const predicting = true;
         var i_frame = 0;
-        while (i_frame < 3000) {
+        while (predicting) {
 //             console.time('model.predict()');
             tf.engine().startScope();
             tf.disposeVariables();
@@ -224,19 +224,35 @@
                 }
                 if (combo_left == NUM_FRAMES_UNTIL_ACTION) {
                     console.log(`left ${current_person_id}`);
-                    $.post(
-                        "/swipes_new", 
-                        {swipe_type: "left", swipe_id: current_person_id}, 
-                        handle_response
-                   );
+//                     $.post(
+//                         "/swipes_new", 
+//                         {swipe_type: "left", swipe_id: current_person_id}, 
+//                         handle_response
+//                     );
+                    $.ajax({
+                        type: "POST",
+                        url: "/swipes_new",
+                        data: JSON.stringify({swipe_type: "left", swipe_id: current_person_id}),
+                        success: handle_response,
+                        dataType: "application/json",
+                        contentType: "application/json; charset=utf-8",
+                    });
                 }
                 if (combo_right == NUM_FRAMES_UNTIL_ACTION) {
                     console.log(`right ${current_person_id}`);
-                    $.post(
-                        "/swipes_new", 
-                        {swipe_type: "right", swipe_id: current_person_id},
-                        handle_response
-                   );
+//                     $.post(
+//                         "/swipes_new", 
+//                         {swipe_type: "right", swipe_id: current_person_id},
+//                         handle_response
+//                     );
+                    $.ajax({
+                        type: "POST",
+                        url: "/swipes_new",
+                        data: JSON.stringify({swipe_type: "right", swipe_id: current_person_id}),
+                        success: handle_response,
+                        dataType: "application/json",
+                        contentType: "application/json; charset=utf-8",
+                    });
                 }
             }
             img.dispose()
@@ -245,7 +261,7 @@
             tf.engine().endScope();
 //             console.timeEnd('model.predict()');  // prints ~50-60 ms
         }
-        console.log(tf.memory());
+//         console.log(tf.memory());
     }
     predict();
 </script>
