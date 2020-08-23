@@ -27,6 +27,7 @@ PATH_SWIPE_DATA_V2 = f'{DB_ROOT_DIR}/swipe_data_v2.csv'
 
 # helper function for Flask to use not cached but new verions of static files
 def dir_last_updated(folder):
+    folder = 'backend/{}'.format(folder)
     return str(max(os.path.getmtime(os.path.join(root_path, f))
                    for root_path, dirs, files in os.walk(folder)
                    for f in files))

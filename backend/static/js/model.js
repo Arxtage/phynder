@@ -140,6 +140,19 @@ async function predict() {
         var person_vk_button = document.getElementById('person_vk_button');
         person_vk_button.setAttribute("onclick", `window.open('https://vk.com/id${current_person_id}', '_blank')`);
     }
+    
+    const moveOutLeft = [
+      { transform: 'rotate(0) translate3D(0, 0, 0)' }, 
+      { transform: 'rotate(-60deg) translate3D(-120vw, 0, 0)' }
+    ];
+    const moveOutRight = [
+      { transform: 'rotate(0) translate3D(0, 0, 0)' }, 
+      { transform: 'rotate(60deg) translate3D(120vw, 0, 0)' }
+    ];
+    const moveTiming = {
+      duration: 1000,
+      iterations: 1
+    }
 
     // Runtime loop
     const NUM_FRAMES_UNTIL_ACTION = 4;
@@ -199,14 +212,10 @@ async function predict() {
                     {swipe_type: "left", swipe_id: current_person_id}, 
                     handle_response
                 );
-//                     $.ajax({
-//                         type: "POST",
-//                         url: "/swipes_new",
-//                         data: JSON.stringify({swipe_type: "left", swipe_id: current_person_id}),
-//                         success: handle_response,
-//                         dataType: "application/json",
-//                         contentType: "application/json; charset=utf-8",
-//                     });
+                document.getElementById("person_image").animate(
+                  moveOutLeft, 
+                  moveTiming
+                );
             }
             if (combo_right == NUM_FRAMES_UNTIL_ACTION) {
                 console.log(`right ${current_person_id}`);
@@ -215,14 +224,10 @@ async function predict() {
                     {swipe_type: "right", swipe_id: current_person_id},
                     handle_response
                 );
-//                     $.ajax({
-//                         type: "POST",
-//                         url: "/swipes_new",
-//                         data: JSON.stringify({swipe_type: "right", swipe_id: current_person_id}),
-//                         success: handle_response,
-//                         dataType: "application/json",
-//                         contentType: "application/json; charset=utf-8",
-//                     });
+                document.getElementById("person_image").animate(
+                  moveOutRight, 
+                  moveTiming
+                );
             }
         }
         img.dispose()

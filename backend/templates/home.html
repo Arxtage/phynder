@@ -1,12 +1,11 @@
 {% extends "template2.html" %}
 {% block content %}
 
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0/dist/tf.min.js"></script>
 <meta name="csrf-token" content="{{ csrf_token() }}">
   
-<div class="container master">
+<div class="container master" style="text-align:center;">
   <div class="person-card">
-    <img id="person_image" src={{person.image}} alt="person">
+    <img id="person_image" src={{person.image}} alt="person" width=300>
     <div class="text">
       <h4><b id="person_name_large">{{person.name}}</b></h4>
       <p class="marker" id="person_name"><i class="fa fa-imdb" aria-hidden="true"></i>{{person.name}}</p>
@@ -17,7 +16,7 @@
     </div>
   </div>
 </div>
-<div class="container">
+<div class="container" style="text-align:center;">
   <div>
     <button id="person_vk_button" class="button watch" onclick="window.open('https://vk.com/id{{person.id}}', '_blank')" target='0'>
       Open the page in VK!
