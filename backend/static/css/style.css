@@ -1203,3 +1203,41 @@ textarea:focus {
     font-size: 50px;
     line-height: 1.0;
 }
+
+
+img {
+    border-radius: 5px 5px 0 0;
+    margin-top: 10px;
+    max-width: 400px;
+  }
+
+hr {
+    margin:10px 0 !important;
+}
+
+body {
+    font-family: Arial;
+    font-size: 17px;
+  }
+  
+.container {
+    position: relative;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+.container img {
+    border-radius: 5px 5px 0 0;
+    margin-top: 10px;
+    max-width: 400px;
+  }
+  
+.container .content {
+    position: absolute;
+    bottom: 0;
+    background: rgb(0, 0, 0); /* Fallback color */
+    background: rgba(0, 0, 0, 0.5); /* Black background with 0.5 opacity */
+    color: #f1f1f1;
+    width: 100%;
+    padding: 20px;
+  }
