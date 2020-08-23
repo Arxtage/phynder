@@ -13,6 +13,7 @@ from flask_wtf.csrf import CSRFProtect
 
 csrf = CSRFProtect()
 app = Flask(__name__)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # !!! REMOVE IN PRODUCTION
 csrf.init_app(app)
 app.secret_key = os.urandom(24)
 
@@ -24,6 +25,13 @@ PATH_GIRLS_CSV = f'{DB_ROOT_DIR}/girls.csv'
 PATH_SWIPE_DATA_V2 = f'{DB_ROOT_DIR}/swipe_data_v2.csv'
 
 
+# helper function for Flask to use not cached but new verions of static files
+def dir_last_updated(folder):
+    return str(max(os.path.getmtime(os.path.join(root_path, f))
+                   for root_path, dirs, files in os.walk(folder)
+                   for f in files))
+
+
 @app.route("/")
 @app.route('/index')
 def home():
@@ -32,19 +40,30 @@ def home():
     """
     if 'access_token' not in session:
         url = '/login'
-        return render_template("index.html", bttnredirect=url)
+        return render_template(
+            "index.html", 
+            bttnredirect=url,
+            last_updated=dir_last_updated('static')
+        )
     else:
         return redirect('/swipes')
 
+    
 @app.route("/about")
 def about():
-    return render_template("about.html", user = session['user_id'])
+    return render_template(
+        "about.html", 
+        user=session['user_id'], 
+        last_updated=dir_last_updated('static')
+    )
+
 
 @app.route('/login/')
 def login():
     """ VK Auth and redirect to /set_cookies with vk code """
     login_url = vk_api.get_login_url()
     return redirect(login_url)
+
 
 @app.route('/set_cookies')
 def set_cookies():
@@ -63,6 +82,7 @@ def set_cookies():
 
     return res
 
+
 # def sample_partners(user_id):
 #     """СЕРВЕР"""
 #     """Pick 20 partners to send for swipes"""
@@ -75,6 +95,7 @@ def set_cookies():
 #     df2 = users_data.loc[users_data['id'].isin(sample.swiped)]
 #     merged = pd.merge(sample, df2, left_on='swiped', right_on='id')
 #     return(merged.to_json(orient='records'))
+
 
 def sample_partners_v2(user_id):
     """СЕРВЕР"""
@@ -92,6 +113,7 @@ def sample_partners_v2(user_id):
 
     return(sample.to_json(orient='records'), swipe_data)
 
+
 @app.route('/swipes')
 def swipes():
     """ЮЗЕР?"""
@@ -99,7 +121,11 @@ def swipes():
     # check if logged, if not -> redirect to /login
     if 'access_token' not in session:
         url = '/login'
-        return render_template("index.html", bttnredirect=url)
+        return render_template(
+            "index.html", 
+            bttnredirect=url, 
+            last_updated=dir_last_updated('static')
+        )
     
     access_token = session['access_token']
 
@@ -121,16 +147,26 @@ def swipes():
 
     #session['partner_counter'] += 1
     #print(session['partner_counter'])
-    return render_template("home.html", person=person, user=user_info)
+    return render_template(
+        "home.html", 
+        person=person, 
+        user=user_info,
+        last_updated=dir_last_updated('static')
+    )
+
 
 @app.route('/swipes_new', methods = ['POST'])
 def swipes_new():
-    """ЮЗЕР?"""
+    """Returns the new person for the next swipe."""
     
     # check if logged, if not -> redirect to /login
     if 'access_token' not in session:
         url = '/login'
-        return render_template("index.html", bttnredirect=url)
+        return render_template(
+            "index.html", 
+            bttnredirect=url,
+            last_updated=dir_last_updated('./static')
+        )
 
     access_token = session['access_token']
 
@@ -156,8 +192,9 @@ def swipes_new():
         'image': partner['crop_photo']
     }
 
-    return person  # render_template("home.html", person=person, user=user_info)
+    return person
 
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
+    
