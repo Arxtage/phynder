@@ -1,13 +1,29 @@
 {% extends "template2.html" %}
 {% block content %}
 
+<!-- box-intro -->
+<section class="box-intro">
+  <div class="table-cell">
+      <h1 class="box-headline letters rotate-2">
+          <span class="box-words-wrapper">
+              <b class="is-visible">свайпай.</b>
+              <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;фанься.</b>
+              <b>встречайся.</b>
+          </span>
+  </h1>
+      <h5>интерактивный тиндер для физтехов</h5>
+      <br>
+      
+      <a class="btn btn-block btn-social btn-vk" src="{{ url_for('static', filename='images/vk.png') }}" onclick="window.location.href='{{ bttnredirect }}';">
+        <span class="fa fa-vk fa-2x"></span> Войти через VK
+      </a>
+  </div>
 
-<div style="text-align: center;">
-  <h1>VK Authorization</h1>
-  <button type="button" onclick="window.location.href='{{ bttnredirect }}';">
-    VK Authorization
-  </button>
-</div>
+  <!--<div class="mouse">
+      <div class="scroll"></div>
+  </div> -->
+</section>
+<!-- end box-intro -->
 
 
 {% endblock %}
