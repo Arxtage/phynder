@@ -155,7 +155,7 @@ async function predict() {
     }
 
     // Runtime loop
-    const NUM_FRAMES_UNTIL_ACTION = 4;
+    const NUM_FRAMES_UNTIL_ACTION = 10;
     var combo_left = 0;
     var combo_right = 0;
     var current_person_id = "4599928";  // !!!
