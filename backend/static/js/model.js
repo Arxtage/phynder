@@ -150,7 +150,7 @@ async function predict() {
       { transform: 'rotate(45deg) translate3D(120vw, 0, 0)' }
     ];
     const moveTiming = {
-      duration: 1000,
+      duration: 650,
       iterations: 1
     }
 
@@ -212,7 +212,7 @@ async function predict() {
                     {swipe_type: "left", swipe_id: current_person_id}, 
                     handle_response
                 );
-                document.getElementById("person_image").animate(
+                document.getElementById("person_card").animate(
                   moveOutLeft, 
                   moveTiming
                 );
@@ -224,7 +224,7 @@ async function predict() {
                     {swipe_type: "right", swipe_id: current_person_id},
                     handle_response
                 );
-                document.getElementById("person_image").animate(
+                document.getElementById("person_card").animate(
                   moveOutRight, 
                   moveTiming
                 );
