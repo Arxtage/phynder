@@ -3,6 +3,8 @@
 
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
+<div id="something" style="text-align:center;"></div>
+
 <div id="person_card" class="container" style="text-align:center;">
   <img id="person_image" src={{person.image}} alt="person">
   <!-- Box with user info on image-->
@@ -17,6 +19,8 @@
 </div>
 
 <script>const MODEL_URL = "{{ url_for('static', filename='model2/model.json') }}"</script>
+<script>const SOMETHING_SRC = "{{ url_for('static', filename='something.mp4') }}"</script>
 <script src="{{ url_for('static', filename='js/model.js') }}"></script>
+
 
 {% endblock %}

@@ -158,6 +158,7 @@ async function predict() {
     const NUM_FRAMES_UNTIL_ACTION = 10;
     var combo_left = 0;
     var combo_right = 0;
+    var combo_drum = 0;
     var current_person_id = "4599928";  // !!!
     const predicting = true;
     var i_frame = 0;
@@ -195,6 +196,11 @@ async function predict() {
                 jest_id = history.slice(-1)[0];
             }
 //                 console.log(CATEGORIES[jest_id]);
+            if (CATEGORIES[jest_id] == "Drumming Fingers") {
+                combo_drum += 1;
+            } else {
+                combo_drum = 0;
+            }
             if (CATEGORIES[jest_id] == "Swiping Left") {
                 combo_left += 1;
             } else {
@@ -228,6 +234,15 @@ async function predict() {
                   moveOutRight, 
                   moveTiming
                 );
+            }
+            if (combo_drum == 42) {
+                console.log("something");
+                var somethingText = `
+                    <video autoplay muted id="some_video" width="640" height="360">
+                        <source src="${SOMETHING_SRC}" type="video/mp4">
+                    </video>`;     
+                $("#something").append(somethingText);
+                setTimeout(function () { $("#something").empty(); }, 8000);
             }
         }
         img.dispose()
