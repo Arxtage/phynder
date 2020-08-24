@@ -426,7 +426,7 @@ h5 {
 .box-intro {
     text-align: center;
     display: table;
-    height: 100vh;
+    height: 77vh;
     width: 100%;
 }
 
@@ -897,7 +897,8 @@ footer img {
     /*background: linear-gradient( rgba(255, 255, 255, .8), rgba(255, 255, 255, .8)), url(../img/01.jpg);*/
     background: -webkit-linear-gradient( rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8));
     background: linear-gradient( rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8));
-    background-size: 10px;
+    /*background-size: 10px;*/
+    height: 10px;
     background-attachment: fixed;
     background-position: center center;
     text-align: center;
@@ -905,9 +906,11 @@ footer img {
 .simple-top-bar {
     color: #333;
     padding: 40px 0 40px;
-    background: -webkit-linear-gradient( rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8));
+    background: -webkit-linear-gradient(rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0.8));
     background: linear-gradient( rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8));
-    background-size: 150px;
+    width: 100px;
+    height: 100px;
+    /*background-size: 10px;*/
     background-attachment: fixed;
     background-position: center center;
     text-align: center;
@@ -1200,3 +1203,41 @@ textarea:focus {
     font-size: 50px;
     line-height: 1.0;
 }
+
+
+img {
+    border-radius: 5px 5px 0 0;
+    margin-top: 10px;
+    max-width: 400px;
+  }
+
+hr {
+    margin:10px 0 !important;
+}
+
+body {
+    font-family: Arial;
+    font-size: 17px;
+  }
+  
+.container {
+    position: relative;
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+.container img {
+    border-radius: 5px 5px 0 0;
+    margin-top: 10px;
+    max-width: 400px;
+  }
+  
+.container .content {
+    position: absolute;
+    bottom: 0;
+    background: rgb(0, 0, 0); /* Fallback color */
+    background: rgba(0, 0, 0, 0.5); /* Black background with 0.5 opacity */
+    color: #f1f1f1;
+    width: 100%;
+    padding: 20px;
+  }

@@ -18,19 +18,11 @@ csrf.init_app(app)
 app.secret_key = os.urandom(24)
 
 VK_API_ID = 7534914
-DB_ROOT_DIR = '/Users/izakharkin/Desktop/skoltech/vrarhaptics/deepjest/phynder/backend/'
-# DB_ROOT_DIR = '/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend'
+#DB_ROOT_DIR = '/Users/izakharkin/Desktop/skoltech/vrarhaptics/deepjest/phynder/backend/'
+DB_ROOT_DIR = '/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend'
 PATH_BOYS_CSV = f'{DB_ROOT_DIR}/boys.csv'
 PATH_GIRLS_CSV = f'{DB_ROOT_DIR}/girls.csv'
 PATH_SWIPE_DATA_V2 = f'{DB_ROOT_DIR}/swipe_data_v2.csv'
-
-
-# helper function for Flask to use not cached but new verions of static files
-def dir_last_updated(folder):
-    folder = 'backend/{}'.format(folder)
-    return str(max(os.path.getmtime(os.path.join(root_path, f))
-                   for root_path, dirs, files in os.walk(folder)
-                   for f in files))
 
 
 @app.route("/")
@@ -43,8 +35,7 @@ def home():
         url = '/login'
         return render_template(
             "index.html", 
-            bttnredirect=url,
-            last_updated=dir_last_updated('static')
+            bttnredirect=url
         )
     else:
         return redirect('/swipes')
@@ -54,8 +45,7 @@ def home():
 def about():
     return render_template(
         "about.html", 
-        user=session['user_id'], 
-        last_updated=dir_last_updated('static')
+        user=session['user_id']
     )
 
 
@@ -83,21 +73,6 @@ def set_cookies():
 
     return res
 
-
-# def sample_partners(user_id):
-#     """СЕРВЕР"""
-#     """Pick 20 partners to send for swipes"""
-
-#     users_data = pd.read_csv('/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend/ONE_IMG_vk_phystech.csv')
-#     swipe_data = pd.read_csv('/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend/swipe_data.csv')
-#     user_combinations = swipe_data[swipe_data["id"]==int(user_id)]
-#     sample = user_combinations[swipe_data['action'].isna()].sample(20)
-
-#     df2 = users_data.loc[users_data['id'].isin(sample.swiped)]
-#     merged = pd.merge(sample, df2, left_on='swiped', right_on='id')
-#     return(merged.to_json(orient='records'))
-
-
 def sample_partners_v2(user_id):
     """СЕРВЕР"""
     """Pick 20 partners to send for swipes"""
@@ -124,9 +99,8 @@ def swipes():
         url = '/login'
         return render_template(
             "index.html", 
-            bttnredirect=url, 
-            last_updated=dir_last_updated('static')
-        )
+            bttnredirect=url
+                    )
     
     access_token = session['access_token']
 
@@ -151,8 +125,7 @@ def swipes():
     return render_template(
         "home.html", 
         person=person, 
-        user=user_info,
-        last_updated=dir_last_updated('static')
+        user=user_info
     )
 
 
@@ -165,8 +138,7 @@ def swipes_new():
         url = '/login'
         return render_template(
             "index.html", 
-            bttnredirect=url,
-            last_updated=dir_last_updated('./static')
+            bttnredirect=url
         )
 
     access_token = session['access_token']

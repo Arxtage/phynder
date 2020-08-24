@@ -17,6 +17,10 @@
     <!-- main css -->
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 
+    <!-- font awesome (for social icons) -->
+    <script src="https://kit.fontawesome.com/9acd43870c.js" crossorigin="anonymous"></script>
+
+
     <!-- modernizr -->
     <script src="{{ url_for('static', filename='js/modernizr.js') }}"></script>
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -105,9 +109,9 @@
         <!-- end nav -->
 
         <!-- Top bar -->
-        <div class="top-bar">
+        <div class="simple-top-bar">
         </div>
-    <!-- end Top bar -->
+        <!-- end Top bar -->
 
         <!-- box-intro -->
         <!-- end box-intro -->
@@ -116,7 +120,6 @@
     <!-- Add block content -->
     {% block content %}
     {% endblock %}
-
     <!-- footer -->
     <footer>
         <div class="container-fluid">
