@@ -143,11 +143,11 @@ async function predict() {
     
     const moveOutLeft = [
       { transform: 'rotate(0) translate3D(0, 0, 0)' }, 
-      { transform: 'rotate(-60deg) translate3D(-120vw, 0, 0)' }
+      { transform: 'rotate(-45deg) translate3D(-120vw, 0, 0)' }
     ];
     const moveOutRight = [
       { transform: 'rotate(0) translate3D(0, 0, 0)' }, 
-      { transform: 'rotate(60deg) translate3D(120vw, 0, 0)' }
+      { transform: 'rotate(45deg) translate3D(120vw, 0, 0)' }
     ];
     const moveTiming = {
       duration: 1000,
