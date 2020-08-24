@@ -426,13 +426,13 @@ h5 {
 .box-intro {
     text-align: center;
     display: table;
-    height: 100vh;
+    height: 77vh;
     width: 100%;
 }
 
 .box-intro .table-cell {
     display: table-cell;
-    vertical-align: top;
+    vertical-align: middle;
 }
 
 .box-intro em {
@@ -531,7 +531,7 @@ b i:last-child {
 
 .box-headline {
     font-size: 130px;
-    line-height: 0.5;
+    line-height: 1.0;
 }
 
 .box-words-wrapper {
@@ -906,7 +906,7 @@ footer img {
 .simple-top-bar {
     color: #333;
     padding: 40px 0 40px;
-    background: -webkit-linear-gradient( rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8));
+    background: -webkit-linear-gradient(rgba(255, 255, 255, 0.8), rgba(0, 0, 0, 0.8));
     background: linear-gradient( rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8));
     width: 100px;
     height: 100px;
