@@ -238,7 +238,7 @@ async function predict() {
             if (combo_drum == 42) {
                 console.log("something");
                 var somethingText = `
-                    <video autoplay muted id="some_video" width="640" height="360">
+                    <video autoplay id="some_video" width="640" height="360">
                         <source src="${SOMETHING_SRC}" type="video/mp4">
                     </video>`;     
                 $("#something").append(somethingText);
