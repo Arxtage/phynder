@@ -159,7 +159,8 @@ async function predict() {
     var combo_left = 0;
     var combo_right = 0;
     var combo_drum = 0;
-    var current_person_id = "4599928";  // !!!
+    var current_person_id = FIRST_PERSON_ID;
+    console.log(current_person_id);
     const predicting = true;
     var i_frame = 0;
     while (predicting) {

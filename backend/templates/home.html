@@ -21,6 +21,7 @@
 
 <script>const MODEL_URL = "{{ url_for('static', filename='model2/model.json') }}"</script>
 <script>const SOMETHING_SRC = "{{ url_for('static', filename='something.mp4') }}"</script>
+<script>const FIRST_PERSON_ID = "{{ person.id }}"</script>
 <script src="{{ url_for('static', filename='js/model.js') }}"></script>
 
 {% endblock %}
