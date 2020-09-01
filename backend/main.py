@@ -69,7 +69,7 @@ def set_cookies():
     session['user_id'] = user_id
     #session['sample'] = sample_partners_v2(user_id)
     #session['partner_counter'] = 0
-    res = redirect('/swipes_new')
+    res = redirect('/swipes')
 
     return res
 
@@ -107,12 +107,6 @@ def swipes():
     user_id = session['user_id']
     user_info = vk_api.get_user_data(access_token, user_id)[0]
     session['sample'], swipe_data = sample_partners_v2(user_id)
-
-    swipe_type = request.form['swipe_type']
-    swipe_id = request.form['swipe_id']
-
-    swipe_data = swipe_data.append({'id':int(user_id), 'id_swiped':int(swipe_id), 'action':swipe_type}, ignore_index=True)
-    swipe_data.to_csv(PATH_SWIPE_DATA_V2, index=False)
 
     list_of_dicts_of_partners = json.loads(session['sample'])
     partner = list_of_dicts_of_partners[0] # one partner
