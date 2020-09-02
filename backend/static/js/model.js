@@ -155,7 +155,9 @@ async function predict() {
     }
 
     // Runtime loop
-    const NUM_FRAMES_UNTIL_ACTION = 10;
+    const NUM_FRAMES_TO_SKIP = 12;
+    const NUM_FRAMES_UNTIL_SWIPE = 10;
+    const NUM_FRAMES_UNTIL_SOMETHING = 42;
     var combo_left = 0;
     var combo_right = 0;
     var combo_drum = 0;
@@ -165,6 +167,7 @@ async function predict() {
     var i_frame = 0;
     while (predicting) {
 //             console.time('model.predict()');
+        i_frame += 1;
         tf.engine().startScope();
         tf.disposeVariables();
         var img = await getProcessedFrame(webcam=webcam, channels_format='channels_last');
@@ -197,6 +200,9 @@ async function predict() {
                 jest_id = history.slice(-1)[0];
             }
 //                 console.log(CATEGORIES[jest_id]);
+            if (i_frame < NUM_FRAMES_TO_SKIP) {
+                continue;
+            }
             if (CATEGORIES[jest_id] == "Drumming Fingers") {
                 combo_drum += 1;
             } else {
@@ -212,7 +218,7 @@ async function predict() {
             } else {
                 combo_right = 0;
             }
-            if (combo_left == NUM_FRAMES_UNTIL_ACTION) {
+            if (combo_left == NUM_FRAMES_UNTIL_SWIPE) {
                 console.log(`left ${current_person_id}`);
                 $.post(
                     "/swipes_new", 
@@ -224,7 +230,7 @@ async function predict() {
                   moveTiming
                 );
             }
-            if (combo_right == NUM_FRAMES_UNTIL_ACTION) {
+            if (combo_right == NUM_FRAMES_UNTIL_SWIPE) {
                 console.log(`right ${current_person_id}`);
                 $.post(
                     "/swipes_new", 
@@ -236,7 +242,7 @@ async function predict() {
                   moveTiming
                 );
             }
-            if (combo_drum == 42) {
+            if (combo_drum == NUM_FRAMES_UNTIL_SOMETHING) {
                 console.log("something");
                 var somethingText = `
                     <video autoplay id="some_video" width="640" height="360">
@@ -248,7 +254,6 @@ async function predict() {
         }
         img.dispose()
         await tf.nextFrame();
-        i_frame += 1;
         tf.engine().endScope();
 //             console.timeEnd('model.predict()');  // prints ~50-60 ms
     }
