@@ -140,7 +140,7 @@ async function predict() {
         var person_vk_button = document.getElementById('person_vk_button');
         person_vk_button.setAttribute("onclick", `window.open('https://vk.com/id${current_person_id}', '_blank')`);
     }
-    
+
     const moveOutLeft = [
       { transform: 'rotate(0) translate3D(0, 0, 0)' }, 
       { transform: 'rotate(-45deg) translate3D(-120vw, 0, 0)' }
