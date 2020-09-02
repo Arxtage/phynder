@@ -22,8 +22,12 @@ VK_API_ID = 7534914
 DB_ROOT_DIR = '/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend/static/db'
 PATH_BOYS_CSV = f'{DB_ROOT_DIR}/boys.csv'
 PATH_GIRLS_CSV = f'{DB_ROOT_DIR}/girls.csv'
-PATH_SWIPE_DATA_V2 = f'{DB_ROOT_DIR}/swipe_data_v2.csv'
 
+PATH_BOYS_SWIPE_DIR= f'{DB_ROOT_DIR}/boys'
+PATH_GIRLS_SWIPE_DIR= f'{DB_ROOT_DIR}/girls'
+
+boys = pd.read_csv(PATH_BOYS_CSV)
+girls = pd.read_csv(PATH_GIRLS_CSV)
 
 @app.route("/")
 @app.route('/index')
@@ -58,16 +62,37 @@ def login():
 
 @app.route('/set_cookies')
 def set_cookies():
+    """СЕРВЕР"""
     """ Get access token and set the cookie with it """
+
     global code
     code = request.args.get('code')
+
     access_token, user_id = vk_api.get_access_token(code)
     session['access_token'] = access_token
     session['user_id'] = user_id
     #session['sample'] = sample_partners_v2(user_id)
-    #session['partner_counter'] = 0
     res = redirect('/swipes')
+
     return res
+
+def sample_partners_v2(user_id):
+    """СЕРВЕР"""
+    """Pick 20 partners to send for swipes"""
+
+    #swipe_data = pd.read_csv(PATH_SWIPE_DATA_V2)
+    
+    if int(user_id) in boys.id.values:
+        user_swipe_data_path = PATH_BOYS_SWIPE_DIR + '/{0}.csv'.format(user_id)
+        user_swipe_data = pd.read_csv(user_swipe_data_path)
+        sample = girls[~girls.id.isin(user_swipe_data.id_swiped)].sample(1)
+        print("==========LEN OF DB WITH PEOPLE LEFT==========", len(girls[~girls.id.isin(user_swipe_data.id_swiped)]))
+    elif int(user_id) in girls.id.values:
+        user_swipe_data_path = PATH_GIRLS_SWIPE_DIR + '/{0}.csv'.format(user_id)
+        user_swipe_data = pd.read_csv(user_swipe_data_path)
+        sample = boys[~boys.id.isin(user_swipe_data.id_swiped)].sample(1)
+
+    return(sample.to_json(orient='records'), user_swipe_data_path)
 
 
 @app.route('/swipes')
@@ -79,13 +104,13 @@ def swipes():
         return render_template(
             "index.html", 
             bttnredirect=url
-        )
+                    )
     
     access_token = session['access_token']
 
     user_id = session['user_id']
     user_info = vk_api.get_user_data(access_token, user_id)[0]
-    session['sample'], swipe_data = sample_partners_v2(user_id)
+    session['sample'], user_swipe_data_path = sample_partners_v2(user_id)
 
     list_of_dicts_of_partners = json.loads(session['sample'])
     partner = list_of_dicts_of_partners[0] # one partner
@@ -97,9 +122,6 @@ def swipes():
         'sex': partner['sex'],
         'image': partner['crop_photo']
     }
-
-    #session['partner_counter'] += 1
-    #print(session['partner_counter'])
     return render_template(
         "home.html", 
         person=person, 
@@ -115,25 +137,24 @@ def swipes_new():
     if 'access_token' not in session:
         url = '/login'
         return render_template(
-            "index.html", 
+            "index.html",
             bttnredirect=url
         )
 
     access_token = session['access_token']
 
     user_id = session['user_id']
-    user_info = vk_api.get_user_data(access_token, user_id)[0]  # убрать в серверную часть
-    session['sample'], swipe_data = sample_partners_v2(user_id)
+    user_info = vk_api.get_user_data(access_token, user_id)[0]
+    session['sample'], user_swipe_data_path = sample_partners_v2(user_id)
 
     swipe_type = request.form['swipe_type']
     swipe_id = request.form['swipe_id']
 
-    swipe_data = swipe_data.append({'id':int(user_id), 'id_swiped':int(swipe_id), 'action':swipe_type}, ignore_index=True)
-    swipe_data.to_csv(PATH_SWIPE_DATA_V2, index=False)
+    with open(user_swipe_data_path,'a') as fd:
+        fd.write('\n{0},{1}'.format(swipe_id, swipe_type))
 
     list_of_dicts_of_partners = json.loads(session['sample'])
     partner = list_of_dicts_of_partners[0]
-    #print('==========PARTNER_ID===========',partner['id'])
     person = {
         'id': partner['id'],
         'name': partner['first_name'],
@@ -143,23 +164,6 @@ def swipes_new():
     }
 
     return person
-
-
-def sample_partners_v2(user_id):
-    """Pick 20 partners to send for swipes"""
-
-    boys = pd.read_csv(PATH_BOYS_CSV)
-    girls = pd.read_csv(PATH_GIRLS_CSV)
-    swipe_data = pd.read_csv(PATH_SWIPE_DATA_V2)
-
-    if int(user_id) in boys.id.values:
-        # проверка какие девочки уже находятся в id_swiped для user_id и семпл из тех, кого там нет
-        sample = girls[~girls.id.isin(swipe_data[swipe_data.id == int(user_id)].id_swiped)].sample(1)
-        print("==========LEN OF DB WITH PEOPLE LEFT==========", 
-              len(girls[~girls.id.isin(swipe_data[swipe_data.id == int(user_id)].id_swiped)]))
-    elif int(user_id) in girls.id.values:
-        sample = boys[~boys.id.isin(swipe_data[swipe_data.id == int(user_id)].id_swiped)].sample(1)
-    return (sample.to_json(orient='records'), swipe_data)
 
 
 if __name__ == '__main__':
