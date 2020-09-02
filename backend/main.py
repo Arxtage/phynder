@@ -6,9 +6,16 @@ import vk_api
 import os
 import pandas as pd
 import json
-#from flask_sqlalchemy import SQLAlchemy
+import logging
 
 from flask_wtf.csrf import CSRFProtect
+
+logpath = "/tmp/log.log"
+logger = logging.getLogger('log')
+logger.setLevel(logging.INFO)
+ch = logging.FileHandler(logpath)
+ch.setFormatter(logging.Formatter('%(message)s'))
+logger.addHandler(ch)
 
 
 csrf = CSRFProtect()
