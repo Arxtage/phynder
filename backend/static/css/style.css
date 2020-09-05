@@ -1211,11 +1211,11 @@ textarea:focus {
 }
 
 
-img {
+/*img {
     border-radius: 5px 5px 0 0;
     margin-top: 10px;
     max-width: 400px;
-  }
+  }*/
 
 hr {
     margin:10px 0 !important;
@@ -1228,22 +1228,21 @@ body {
   
 .container {
     position: relative;
-    max-width: 400px;
+    width: 600px;
+    height: 600px;
+    /*background: red;*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
-  
-.container img {
-    border-radius: 5px 5px 5px 5px;
-    margin-top: 0px;
-    max-width: 400px;
-  }
-  
+
 .container .content {
     height: 110px;
     border-radius: 5px 5px 5px 5px;
     position: absolute;
-    bottom: 0;
+    bottom: 110px;
     /*background: rgb(0, 0, 0); /* Fallback color */
-    background: rgba(0, 0, 0, 0.2); /* Black background with 0.5 opacity */
+    background: rgba(0, 0, 0, 0.0); /* Black background with 0.5 opacity */
     color: #f1f1f1;
     width: 100%;
     padding: 0px;
