@@ -3,6 +3,11 @@
 
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
+<div id="camerBbuttons" style="text-align:center;">
+    <input type="button" value="ON" onclick="camera_on()" id="cameraOnButton">
+    <input type="button" value="OFF" onclick="camera_off()" id="cameraOffButton">
+</div>
+
 <div id="main" style="display:flex;">
     <div id="person_card" class="container" style="text-align:center;">
       <img id="person_image" src={{person.image}} alt="person">
@@ -11,7 +16,11 @@
         <h4><b id="person_name">{{person.name}}</b></h4>
         <h4><b id="person_surname">{{person.surname}}</b></h4>
         <!-- VK link Button-->
-        <a id="person_vk_button" class="btn btn-block btn-social btn-vk" src="{{ url_for('static', filename='images/vk.png') }}" onclick="window.open('https://vk.com/id{{person.id}}', '_blank')" target='0'>
+        <a id="person_vk_button" 
+           class="btn btn-block btn-social btn-vk" 
+           src="{{ url_for('static', filename='images/vk.png') }}" 
+           onclick="window.open('https://vk.com/id{{person.id}}', '_blank')" 
+           target='0'>
           <span class="fa fa-vk fa-2x"></span>
         </a>
       </div>
@@ -19,9 +28,39 @@
     <div id="something" style="text-align:right;"></div>
 </div>
 
-<script>const MODEL_URL = "{{ url_for('static', filename='model2/model.json') }}"</script>
-<script>const SOMETHING_SRC = "{{ url_for('static', filename='something.mp4') }}"</script>
-<script>const FIRST_PERSON_ID = "{{ person.id }}"</script>
+<script>
+    const MODEL_URL = "{{ url_for('static', filename='model2/model.json') }}"
+    const SOMETHING_SRC = "{{ url_for('static', filename='something.mp4') }}"
+    var current_person_id = "{{ person.id }}";
+    console.log(current_person_id);
+    var predicting = true;
+    var is_camera_on = false;
+    var was_camera_on = false;
+    
+    navigator.getUserMedia = 
+        navigator.getUserMedia 
+        || navigator.webkitGetUserMedia 
+        || navigator.mozGetUserMedia 
+        || navigator.msGetUserMedia;
+    
+    videoElement = document.createElement('video');
+    videoElement.setAttribute("id", "webcam");
+    
+    $(document).bind("mouseleave", function(e) {
+        if (is_camera_on) {
+            camera_off();
+            was_camera_on = true;
+        }
+    });
+    
+    $(document).bind("mouseenter", function(e) {
+        if (was_camera_on) {
+            camera_on();
+            was_camera_on = false;
+        }
+    });
+</script>
+
 <script src="{{ url_for('static', filename='js/model.js') }}"></script>
 
 {% endblock %}

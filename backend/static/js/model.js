@@ -9,7 +9,6 @@ $.ajaxSetup({
 })
 
 // Main logic
-// const MODEL_URL = "{{ url_for('static', filename='model2/model.json') }}"
 const CATEGORIES = [
     "Doing other things",  // 0
     "Drumming Fingers",    // 1
@@ -42,6 +41,11 @@ const CATEGORIES = [
 const ILLEGAL_ACTIONS = [7, 8, 21, 22, 3];
 const HISTORY_LOGIT = true;
 const REFINE_OUTPUT = true;
+
+async function loadModel() {
+    model = await tf.loadGraphModel(MODEL_URL);
+}
+loadModel();
 
 async function getProcessedFrame(webcam, channels_format) {
     /**
@@ -85,45 +89,7 @@ async function process_output(idx_, history) {
     return history;
 }
 
-async function predict() {
-    try {
-        const videoElement = document.createElement('video');
-        videoElement.width = 224;
-        videoElement.height = 224;
-        webcam = await tf.data.webcam(videoElement);
-//             cam.stop();
-//             const webcam = await tf.data.webcam(document.getElementById('webcam'));
-    } catch (e) {
-        console.log(e);
-        document.getElementById('no-webcam').style.display = 'block';
-    }
-    const model = await tf.loadGraphModel(MODEL_URL);
-    var input_tensors = {
-        'i0': tf.ones([1, 3, 224, 224]).transpose([0, 2, 3, 1]),
-        'i1': tf.ones([1, 3, 55, 55]).transpose([0, 2, 3, 1]),
-        'i2': tf.ones([1, 4, 27, 27]).transpose([0, 2, 3, 1]),
-        'i3': tf.ones([1, 4, 27, 27]).transpose([0, 2, 3, 1]),
-        'i4': tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
-        'i5': tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
-        'i6': tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
-        'i7': tf.ones([1, 12, 13, 13]).transpose([0, 2, 3, 1]),
-        'i8': tf.ones([1, 12, 13, 13]).transpose([0, 2, 3, 1]),
-        'i9': tf.ones([1, 20, 6, 6]).transpose([0, 2, 3, 1]),
-        'i10': tf.ones([1, 20, 6, 6]).transpose([0, 2, 3, 1])
-    }  // SPATIAL SHAPES WERE DECREASED BY 1 !!!
-    var jest_id = 2;
-    var history = [2, 2];
-    function InitLogitHistory(size) {
-        var x = [];
-        for (var i = 0; i < size; ++i) {
-            x.push(tf.ones([1, 27]));
-        }
-        return x;
-    }
-    var history_logit = InitLogitHistory(12);
-    var hist_cyclic_idx = 0;
-
-    function handle_response(response) {
+function handle_response(response) {
         current_person_id = response["id"];
         var url = response["image"];
         var img = new Image();
@@ -141,32 +107,84 @@ async function predict() {
         person_vk_button.setAttribute("onclick", `window.open('https://vk.com/id${current_person_id}', '_blank')`);
     }
 
-    const moveOutLeft = [
-      { transform: 'rotate(0) translate3D(0, 0, 0)' }, 
-      { transform: 'rotate(-45deg) translate3D(-120vw, 0, 0)' }
-    ];
-    const moveOutRight = [
-      { transform: 'rotate(0) translate3D(0, 0, 0)' }, 
-      { transform: 'rotate(45deg) translate3D(120vw, 0, 0)' }
-    ];
-    const moveTiming = {
-      duration: 650,
-      iterations: 1
-    }
+const moveOutLeft = [
+  { transform: 'rotate(0) translate3D(0, 0, 0)' }, 
+  { transform: 'rotate(-45deg) translate3D(-120vw, 0, 0)' }
+];
 
-    // Runtime loop
+const moveOutRight = [
+  { transform: 'rotate(0) translate3D(0, 0, 0)' }, 
+  { transform: 'rotate(45deg) translate3D(120vw, 0, 0)' }
+];
+
+const moveTiming = {
+  duration: 650,
+  iterations: 1
+}
+
+async function camera_on() {
+    if (is_camera_on) {
+        return;
+    }
+    
+    navigator.getUserMedia(
+        {
+            video: { width: 224, height: 224 },
+            audio: false
+        },
+        async function (stream) {
+            window.localStream = stream;
+            videoElement.srcObject = stream;
+        },
+        function (err) {
+            console.log("The following error occured: " + err);
+        }
+    );
+    is_camera_on = true;
+    console.log("CAMERA ACTIVATED");
+    
+    var input_tensors = {
+        'i0': tf.ones([1, 3, 224, 224]).transpose([0, 2, 3, 1]),
+        'i1': tf.ones([1, 3, 55, 55]).transpose([0, 2, 3, 1]),
+        'i2': tf.ones([1, 4, 27, 27]).transpose([0, 2, 3, 1]),
+        'i3': tf.ones([1, 4, 27, 27]).transpose([0, 2, 3, 1]),
+        'i4': tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
+        'i5': tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
+        'i6': tf.ones([1, 8, 13, 13]).transpose([0, 2, 3, 1]),
+        'i7': tf.ones([1, 12, 13, 13]).transpose([0, 2, 3, 1]),
+        'i8': tf.ones([1, 12, 13, 13]).transpose([0, 2, 3, 1]),
+        'i9': tf.ones([1, 20, 6, 6]).transpose([0, 2, 3, 1]),
+        'i10': tf.ones([1, 20, 6, 6]).transpose([0, 2, 3, 1])
+    }  // SPATIAL SHAPES WERE DECREASED BY 1 !!!
+
+    var jest_id = 2;
+    var history = [2, 2];
+    function InitLogitHistory(size) {
+        var x = [];
+        for (var i = 0; i < size; ++i) {
+            x.push(tf.ones([1, 27]));
+        }
+        return x;
+    }
+    var history_logit = InitLogitHistory(12);
+    var hist_cyclic_idx = 0;
+
     const NUM_FRAMES_TO_SKIP = 12;
     const NUM_FRAMES_UNTIL_SWIPE = 10;
     const NUM_FRAMES_UNTIL_SOMETHING = 42;
     var combo_left = 0;
     var combo_right = 0;
     var combo_drum = 0;
-    var current_person_id = FIRST_PERSON_ID;
-    console.log(current_person_id);
-    const predicting = true;
     var i_frame = 0;
+    
+    videoElement.width = 224;
+    videoElement.height = 224;
+    webcam = await tf.data.webcam(videoElement);
+    
+    predicting = true;
+    
     while (predicting) {
-//             console.time('model.predict()');
+        // console.time('model.predict()');
         i_frame += 1;
         tf.engine().startScope();
         tf.disposeVariables();
@@ -190,6 +208,9 @@ async function predict() {
                 history_logit[hist_cyclic_idx] = tf.keep(preds[9]);
                 hist_cyclic_idx = (hist_cyclic_idx + 1) % history_logit.length;
             });
+            if (i_frame < NUM_FRAMES_TO_SKIP) {
+                continue;
+            }
             if (HISTORY_LOGIT) {
                 avg_logit = history_logit.reduce(function(a, b){ return a.add(b); });
                 jest_id = await avg_logit.argMax(axis=1).array();
@@ -199,10 +220,7 @@ async function predict() {
                 history = await process_output(jest_id, history);
                 jest_id = history.slice(-1)[0];
             }
-//                 console.log(CATEGORIES[jest_id]);
-            if (i_frame < NUM_FRAMES_TO_SKIP) {
-                continue;
-            }
+            // console.log(CATEGORIES[jest_id]);
             if (CATEGORIES[jest_id] == "Drumming Fingers") {
                 combo_drum += 1;
             } else {
@@ -255,9 +273,29 @@ async function predict() {
         img.dispose()
         await tf.nextFrame();
         tf.engine().endScope();
-//             console.timeEnd('model.predict()');  // prints ~50-60 ms
-    }
-//         console.log(tf.memory());
+        // console.timeEnd('model.predict()');  // prints ~50-60 ms
+    }  
 }
 
-predict();
+async function camera_off() {  
+    if (!is_camera_on) {
+        return;
+    }
+    
+    predicting = false;
+    
+    const tracksLocal = localStream.getVideoTracks();
+    tracksLocal.forEach(function(track) {
+        track.stop();
+    });
+    
+    const tracksVideo = videoElement.srcObject.getVideoTracks();
+    tracksVideo.forEach(function(track) {
+        track.stop();
+    });
+    videoElement.srcObject = null;
+    
+    is_camera_on = false;
+    
+    console.log("CAMERA DEACTIVATED");
+}
