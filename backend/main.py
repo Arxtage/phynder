@@ -6,17 +6,11 @@ import vk_api
 import os
 import pandas as pd
 import json
+
 import logging
+logging_formatter = logging.Formatter('%(message)s')
 
 from flask_wtf.csrf import CSRFProtect
-
-logpath = "/tmp/log.log"
-logger = logging.getLogger('log')
-logger.setLevel(logging.INFO)
-ch = logging.FileHandler(logpath)
-ch.setFormatter(logging.Formatter('%(message)s'))
-logger.addHandler(ch)
-
 
 csrf = CSRFProtect()
 app = Flask(__name__)
@@ -35,6 +29,72 @@ PATH_GIRLS_SWIPE_DIR= f'{DB_ROOT_DIR}/girls'
 
 boys = pd.read_csv(PATH_BOYS_CSV)
 girls = pd.read_csv(PATH_GIRLS_CSV)
+
+
+class loggedUser():
+    def __init__(self, user_id):
+        self.id = user_id
+        self.gender = None
+        self.swipe_data_path = None
+        self.opposite_folder_path = None
+        self.logger = None
+    def set_user_info(self):
+        if int(self.id) in boys.id.values:
+            self.gender = "boy"
+            self.swipe_data_path = PATH_BOYS_SWIPE_DIR + '/{0}.csv'.format(self.id)
+            self.opposite_folder_path = PATH_GIRLS_SWIPE_DIR
+            self.logger = setup_logger('user_logger', PATH_BOYS_SWIPE_DIR + '/{0}.log'.format(self.id))
+
+        elif int(self.id) in girls.id.values:
+            self.gender = "girl"
+            self.swipe_data_path  = PATH_GIRLS_SWIPE_DIR + '/{0}.csv'.format(self.id)
+            self.opposite_folder_path = PATH_BOYS_SWIPE_DIR
+            self.logger = setup_logger('user_logger', PATH_GIRLS_SWIPE_DIR + '/{0}.log'.format(self.id))
+
+
+def setup_logger(name, log_file, level=logging.INFO):
+    """To setup as many loggers as you want"""
+
+    handler = logging.FileHandler(log_file)        
+    handler.setFormatter(logging_formatter)
+
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+    logger.addHandler(handler)
+    return logger
+
+
+def check_match(swipe_type, swipe_id):
+    """check if matched and write to files"""
+
+    if swipe_type == 'right':
+        with open(logged_user.opposite_folder_path + '/{0}.csv'.format(swipe_id)) as f_swipe:
+            for line in csv.reader(f_swipe):
+                if line == [logged_user.id, 'right']:
+                    print('MATCH!')
+                    # write to llog file of user
+                    logged_user.logger.info(swipe_id)
+                    # write in log file of matched person
+                    partner_logger =setup_logger('partner_logger', logged_user.opposite_folder_path + '/{0}.log'.format(swipe_id))
+                    partner_logger.info(logged_user.id)
+                    break
+
+
+def sample_partners_v2(user_id):
+    """Pick partners to send for swipes"""
+
+    #swipe_data = pd.read_csv(PATH_SWIPE_DATA_V2)
+    
+    if logged_user.gender == 'boy':
+        user_swipe_data = pd.read_csv(logged_user.swipe_data_path)
+        sample = girls[~girls.id.isin(user_swipe_data.id_swiped)].sample(1)
+        print("==========LEN OF DB WITH PEOPLE LEFT==========", len(girls[~girls.id.isin(user_swipe_data.id_swiped)]))
+    elif logged_user.gender == 'girl':
+        user_swipe_data = pd.read_csv(logged_user.swipe_data_path)
+        sample = boys[~boys.id.isin(user_swipe_data.id_swiped)].sample(1)
+
+    return(sample.to_json(orient='records'))
+
 
 @app.route("/")
 @app.route('/index')
@@ -78,28 +138,12 @@ def set_cookies():
     access_token, user_id = vk_api.get_access_token(code)
     session['access_token'] = access_token
     session['user_id'] = user_id
-    #session['sample'] = sample_partners_v2(user_id)
-    res = redirect('/swipes')
-
-    return res
-
-def sample_partners_v2(user_id):
-    """СЕРВЕР"""
-    """Pick 20 partners to send for swipes"""
-
-    #swipe_data = pd.read_csv(PATH_SWIPE_DATA_V2)
+    global logged_user
+    logged_user = loggedUser(user_id = user_id)
+    logged_user.set_user_info()
     
-    if int(user_id) in boys.id.values:
-        user_swipe_data_path = PATH_BOYS_SWIPE_DIR + '/{0}.csv'.format(user_id)
-        user_swipe_data = pd.read_csv(user_swipe_data_path)
-        sample = girls[~girls.id.isin(user_swipe_data.id_swiped)].sample(1)
-        print("==========LEN OF DB WITH PEOPLE LEFT==========", len(girls[~girls.id.isin(user_swipe_data.id_swiped)]))
-    elif int(user_id) in girls.id.values:
-        user_swipe_data_path = PATH_GIRLS_SWIPE_DIR + '/{0}.csv'.format(user_id)
-        user_swipe_data = pd.read_csv(user_swipe_data_path)
-        sample = boys[~boys.id.isin(user_swipe_data.id_swiped)].sample(1)
-
-    return(sample.to_json(orient='records'), user_swipe_data_path)
+    res = redirect('/swipes')
+    return res
 
 
 @app.route('/swipes')
@@ -117,7 +161,7 @@ def swipes():
 
     user_id = session['user_id']
     user_info = vk_api.get_user_data(access_token, user_id)[0]
-    session['sample'], user_swipe_data_path = sample_partners_v2(user_id)
+    session['sample'] = sample_partners_v2(user_id)
 
     list_of_dicts_of_partners = json.loads(session['sample'])
     partner = list_of_dicts_of_partners[0] # one partner
@@ -126,7 +170,6 @@ def swipes():
         'id': partner['id'],
         'name': partner['first_name'],
         'surname': partner['last_name'],
-        'sex': partner['sex'],
         'image': partner['crop_photo']
     }
     return render_template(
@@ -152,13 +195,17 @@ def swipes_new():
 
     user_id = session['user_id']
     user_info = vk_api.get_user_data(access_token, user_id)[0]
-    session['sample'], user_swipe_data_path = sample_partners_v2(user_id)
+    session['sample'] = sample_partners_v2(user_id)
 
     swipe_type = request.form['swipe_type']
     swipe_id = request.form['swipe_id']
 
-    with open(user_swipe_data_path,'a') as fd:
+    with open(logged_user.swipe_data_path,'a') as fd:
         fd.write('\n{0},{1}'.format(swipe_id, swipe_type))
+    
+    ### ==========НАЧАЛО МАТЧИНГА==========
+    check_match(swipe_type, swipe_id)
+    ### ==========КОНЕЦ МАТЧИНГА==========
 
     list_of_dicts_of_partners = json.loads(session['sample'])
     partner = list_of_dicts_of_partners[0]
@@ -166,7 +213,6 @@ def swipes_new():
         'id': partner['id'],
         'name': partner['first_name'],
         'surname': partner['last_name'],
-        'sex': partner['sex'],
         'image': partner['crop_photo']
     }
 
@@ -175,4 +221,3 @@ def swipes_new():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=80, debug=True)
-    
