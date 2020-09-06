@@ -3,9 +3,17 @@
 
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<div id="camerBbuttons" style="text-align:center;">
+<!-- <div id="cameraButtons" style="text-align:center;">
     <input type="button" value="ON" onclick="camera_on()" id="cameraOnButton">
     <input type="button" value="OFF" onclick="camera_off()" id="cameraOffButton">
+</div> -->
+
+<div id="cameraSwitch" style="text-align:center;">
+    <label class="cl-switch cl-switch-xlarge" style="text-align:center;">
+        <span class="label">Camera</span>
+        <input type="checkbox" id="camswitch" unchecked >
+        <span class="switcher"></span>
+    </label>
 </div>
 
 <div id="main" style="display:flex;">
@@ -45,6 +53,14 @@
     
     videoElement = document.createElement('video');
     videoElement.setAttribute("id", "webcam");
+
+    $("#camswitch").change(function() {
+       if( $(this).is(':checked') ) {
+           camera_on();
+       } else {
+           camera_off();
+       }
+    });
     
     $(document).bind("mouseleave", function(e) {
         if (is_camera_on) {
