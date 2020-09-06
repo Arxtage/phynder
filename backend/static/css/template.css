@@ -7,3 +7,8 @@ body {
   padding: 10px;
   color: white;
 }
+
+@font-face {
+  font-family: Comfortaa;
+  src: url(fonts/Comfortaa-Regular.ttf);
+}

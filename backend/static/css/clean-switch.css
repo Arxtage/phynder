@@ -1,3 +1,8 @@
+@font-face {
+  font-family: Comfortaa;
+  src: url(fonts/Comfortaa-Regular.ttf);
+}
+
 .cl-switch {
   /*
   Switcher Style
@@ -63,7 +68,7 @@
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6), 0 0 0 10px rgba(63, 81, 181, 0.3);
       transition: all, 0.1s; }
   .cl-switch .label {
-    font-family: "Avenir", sans-serif;
+    font-family: Comfortaa, sans-serif;
     cursor: pointer;
     vertical-align: middle;
     margin: 0 5px; 
