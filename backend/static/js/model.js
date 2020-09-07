@@ -105,17 +105,17 @@ function handle_response(response) {
         $('#person_description').text(response["name"]);  // !!!
         var person_vk_button = document.getElementById('person_vk_button');
         person_vk_button.setAttribute("onclick", `window.open('https://vk.com/id${current_person_id}', '_blank')`);
+        
         if (response["instagram"] !== "None" 
             && response["instagram"] !== null 
             && response["instagram"] !== '') {
             var person_insta_button = `
                 <a id="person_insta_button" 
-                 class="btn btn-block btn-social btn-vk" 
-                 src="{{ url_for('static', filename='images/vk.png') }}"
+                 class="btn btn-social-icon.btn-xs btn-instagram" 
                  onclick="window.open('https://www.instagram.com/${response["instagram"]}', '_blank')" target='0'>
-                <span class="fa fa-vk fa-2x"></span>
+                <span class="fa fa-instagram fa-2x"></span>
               </a>`;
-            $("#person_content").append(person_insta_button);
+            $("#social_buttons").append(person_insta_button);
         } else {
             $("#person_insta_button").remove();
         }

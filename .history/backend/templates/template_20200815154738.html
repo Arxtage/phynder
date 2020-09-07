@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Flask Parent Template</title>
+
+
+
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/black_tinder.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/template.css') }}">
+    <!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+      integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous"> -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+
+    <link href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.no-icons.min.css" rel="stylesheet">
+    <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="webcam-box-outer">
+      <div class="webcam-box-inner">
+        <video autoplay playsinline muted id="webcam" width="224" height="224"></video>
+      </div>
+    </div>
+    <!--<div style="text-align: center;">
+        <img id="img_to_update" src="https://sun9-15.userapi.com/c830409/v830409625/90304/v_bkC18PLrc.jpg" width=256 height=512/>
+    </div>-->
+    <header>
+      <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <a class="navbar-brand" href="/">Phynder</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavAltMarkup"
+            aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div id="navbarNavAltMarkup">
+            <div class="navbar-nav">
+              <a class="nav-item nav-link active" href="/">Home <span class="sr-only">(current)</span></a>
+              <a class="nav-item nav-link" href="/about">About</a>
+            </div>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    {% block content %}
+    {% endblock %}
+
+  </body>
+</html>
