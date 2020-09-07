@@ -25,8 +25,8 @@ csrf.init_app(app)
 app.secret_key = os.urandom(24)
 
 VK_API_ID = 7534914
-# DB_ROOT_DIR = '/Users/izakharkin/Desktop/skoltech/vrarhaptics/deepjest/phynder/backend/static/db'
-DB_ROOT_DIR = '/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend/static/db'
+DB_ROOT_DIR = '/Users/izakharkin/Desktop/skoltech/vrarhaptics/deepjest/phynder/backend/static/db'
+# DB_ROOT_DIR = '/Users/inarm/Desktop/PHYNDER.tmp/phynder/backend/static/db'
 PATH_BOYS_CSV = f'{DB_ROOT_DIR}/boys.csv'
 PATH_GIRLS_CSV = f'{DB_ROOT_DIR}/girls.csv'
 
