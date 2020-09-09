@@ -36,18 +36,21 @@ class loggedUser():
         self.id = user_id
         self.gender = None
         self.swipe_data_path = None
+        self.folder_path = None
         self.opposite_folder_path = None
         self.logger = None
     def set_user_info(self):
         if int(self.id) in boys.id.values:
             self.gender = "boy"
             self.swipe_data_path = PATH_BOYS_SWIPE_DIR + '/{0}.csv'.format(self.id)
+            self.folder_path = PATH_BOYS_SWIPE_DIR
             self.opposite_folder_path = PATH_GIRLS_SWIPE_DIR
             self.logger = setup_logger('user_logger', PATH_BOYS_SWIPE_DIR + '/{0}.log'.format(self.id))
 
         elif int(self.id) in girls.id.values:
             self.gender = "girl"
             self.swipe_data_path  = PATH_GIRLS_SWIPE_DIR + '/{0}.csv'.format(self.id)
+            self.folder_path = PATH_GIRLS_SWIPE_DIR
             self.opposite_folder_path = PATH_BOYS_SWIPE_DIR
             self.logger = setup_logger('user_logger', PATH_GIRLS_SWIPE_DIR + '/{0}.log'.format(self.id))
 
@@ -64,6 +67,25 @@ def setup_logger(name, log_file, level=logging.INFO):
     return logger
 
 
+def get_list_of_matches():
+    """get the list of matches of user to show"""
+    
+    temporary_list = []
+    logged_user.folder_path + '/{0}.log'.format(logged_user.id)
+    # check if file is non-empty
+    
+    if os.stat(logged_user.folder_path + '/{0}.log'.format(logged_user.id)).st_size != 0:
+        with open(logged_user.folder_path + '/{0}.log'.format(logged_user.id)) as f:
+            for line in f:
+                if logged_user.gender == 'boy':
+                    temporary_list.append(girls[girls.id == int(line)][['id','first_name','photo_400_orig']])
+                elif logged_user.gender == 'girl':
+                    temporary_list.append(boys[boys.id == int(line)][['id','first_name','photo_400_orig']])
+
+        match_list = pd.concat(temporary_list).to_dict(orient='records')
+    return(match_list)
+
+
 def check_match(swipe_type, swipe_id):
     """check if matched and write to files"""
 
@@ -72,10 +94,10 @@ def check_match(swipe_type, swipe_id):
             for line in csv.reader(f_swipe):
                 if line == [logged_user.id, 'right']:
                     print('MATCH!')
-                    # write to llog file of user
+                    # write to log file of user
                     logged_user.logger.info(swipe_id)
                     # write in log file of matched person
-                    partner_logger =setup_logger('partner_logger', logged_user.opposite_folder_path + '/{0}.log'.format(swipe_id))
+                    partner_logger = setup_logger('partner_logger', logged_user.opposite_folder_path + '/{0}.log'.format(swipe_id))
                     partner_logger.info(logged_user.id)
                     break
 
@@ -165,7 +187,7 @@ def swipes():
 
     list_of_dicts_of_partners = json.loads(session['sample'])
     partner = list_of_dicts_of_partners[0] # one partner
-    print('==========PARTNER_ID===========',partner['id'])
+    
     person = {
         'id': partner['id'],
         'name': partner['first_name'],
@@ -173,10 +195,16 @@ def swipes():
         'image': partner['crop_photo'],
         'instagram': partner['instagram']
     }
+
+    # =========== Список Матчей ===========
+    list_of_matches = get_list_of_matches()
+    print('======MATCHES=====', list_of_matches)
+
     return render_template(
         "home.html", 
-        person=person, 
-        user=user_info
+        person = person, 
+        user = user_info,
+        list_of_matches = list_of_matches
     )
 
 
